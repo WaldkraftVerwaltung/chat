@@ -14,10 +14,11 @@ jobs:
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /opt/chat && export COMPOSE_PROJECT_NAME=chat
-            docker compose ps frontend
-            docker compose logs frontend --tail 30
-            curl -s http://localhost:3011 2>&1 | head -50
-            docker compose exec -T frontend ls .next/ 2>&1
-            docker compose exec -T frontend printenv PORT 2>&1
-            docker compose exec -T frontend printenv NEXT_PUBLIC_API_URL 2>&1
+            echo "=== ALL docker containers ==="
+            docker ps -a
+            echo "=== Check /opt/chat ==="
+            ls /opt/chat/docker-compose.yml 2>&1
+            echo "=== Try compose in /opt/chat ==="
+            cd /opt/chat && docker compose ps 2>&1
+            echo "=== UFW ==="
+            ufw status numbered 2>&1 | head -20
