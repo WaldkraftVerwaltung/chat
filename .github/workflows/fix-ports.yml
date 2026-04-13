@@ -7,7 +7,7 @@ jobs:
   fix:
     runs-on: ubuntu-latest
     steps:
-      - name: Fix stuck ports and restart
+      - name: Fix ports
         uses: appleboy/ssh-action@v1
         with:
           host: 91.107.233.103
@@ -15,15 +15,23 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           command_timeout: 15m
           script: |
-            fuser -k 3010/tcp 2>/dev/null || true
-            fuser -k 3011/tcp 2>/dev/null || true
-            sleep 2
+            echo "=== Who uses 3010? ==="
+            ss -tlnp | grep 3010
+            lsof -i :3010 2>/dev/null || true
+            echo "=== Who uses 3011? ==="
+            ss -tlnp | grep 3011
+            lsof -i :3011 2>/dev/null || true
+            echo "=== All docker containers on these ports ==="
+            docker ps -a --format "table {{.Names}}\t{{.Ports}}\t{{.Status}}" | grep -E "3010|3011" || echo "None"
+            echo "=== Restart Docker daemon ==="
+            systemctl restart docker
+            sleep 10
+            echo "=== After docker restart ==="
+            ss -tlnp | grep -E "3010|3011" || echo "Ports free now"
+            echo "=== Start chat ==="
             cd /opt/chat
-            docker compose kill 2>/dev/null || true
-            docker compose rm -f 2>/dev/null || true
-            ss -tlnp | grep -E "3010|3011" && echo "STILL IN USE" || echo "Ports free"
             docker compose up -d 2>&1
             sleep 30
             docker compose ps -a
-            curl -s -o /dev/null -w "Backend: HTTP %{http_code}\n" http://localhost:3010/api/auth/login
-            curl -s http://localhost:3011 2>&1 | head -3
+            curl -s -o /dev/null -w "Backend: %{http_code}\n" http://localhost:3010/api/auth/login
+            curl -s -o /dev/null -w "Frontend: %{http_code}\n" http://localhost:3011
