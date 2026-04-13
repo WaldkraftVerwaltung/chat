@@ -1,29 +1,29 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Copy workspace root files
-COPY package.json tsconfig.base.json ./
-COPY packages/shared/package.json packages/shared/
-COPY packages/backend/package.json packages/backend/
+# Copy everything
+COPY . .
 
-# Install all dependencies
-RUN cd packages/shared && npm install
-RUN cd packages/backend && npm install
+# Install deps at root (workspaces resolve)
+RUN npm install --workspaces --include-workspace-root
 
-# Copy source
-COPY packages/shared/ packages/shared/
-COPY packages/backend/ packages/backend/
-
-# Build shared first, then backend
+# Build shared then backend
 RUN cd packages/shared && npx tsc
 RUN cd packages/backend && npx nest build
 
 FROM node:20-alpine
 WORKDIR /app
+
+# Copy built backend + its deps
 COPY --from=builder /app/packages/backend/dist ./dist
-COPY --from=builder /app/packages/backend/node_modules ./node_modules
+COPY --from=builder /app/packages/backend/package.json ./
+
+# Copy entire node_modules from root (workspaces symlinks)
+COPY --from=builder /app/node_modules ./node_modules
+
+# Copy shared dist for @chat/shared resolution
 COPY --from=builder /app/packages/shared/dist ./node_modules/@chat/shared/dist
 COPY --from=builder /app/packages/shared/package.json ./node_modules/@chat/shared/
-COPY --from=builder /app/packages/backend/package.json ./
+
 EXPOSE 3001
 CMD ["node", "dist/main.js"]
