@@ -31,6 +31,6 @@ COPY --from=builder /app/packages/frontend/.next ./.next
 COPY --from=builder /app/packages/frontend/public ./public
 COPY --from=builder /app/packages/frontend/node_modules ./node_modules
 COPY --from=builder /app/packages/frontend/package.json ./
-COPY --from=builder /app/packages/frontend/next.config.ts ./
+COPY --from=builder /app/packages/frontend/next.config.mjs ./
 EXPOSE 3000
 CMD ["npm", "start"]
