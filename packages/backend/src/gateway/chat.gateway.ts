@@ -9,6 +9,8 @@ import { ReactionsService } from '../reactions/reactions.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { MentionDetectorService } from '../notifications/mention-detector.service';
 import { ChannelsService } from '../channels/channels.service';
+import { PresenceService } from '../presence/presence.service';
+import { Presence } from '@chat/shared';
 
 @WebSocketGateway({ cors: { origin: '*', credentials: true }, namespace: '/' })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -24,6 +26,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private notificationsService: NotificationsService,
     private mentionDetector: MentionDetectorService,
     private channelsService: ChannelsService,
+    private presenceService: PresenceService,
   ) {}
 
   async handleConnection(socket: Socket) {
@@ -33,13 +36,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!this.userSockets.has(user.id)) this.userSockets.set(user.id, new Set());
     this.userSockets.get(user.id).add(socket.id);
     socket.join(`user:${user.id}`);
+    await this.presenceService.setPresence(user.id, Presence.ACTIVE);
+    this.server.emit('presence:update', { userId: user.id, presence: Presence.ACTIVE });
   }
 
-  handleDisconnect(socket: Socket) {
+  async handleDisconnect(socket: Socket) {
     const user = socket.data.user;
     if (user) {
       this.userSockets.get(user.id)?.delete(socket.id);
-      if (this.userSockets.get(user.id)?.size === 0) this.userSockets.delete(user.id);
+      if (this.userSockets.get(user.id)?.size === 0) {
+        this.userSockets.delete(user.id);
+        await this.presenceService.removePresence(user.id);
+        this.server.emit('presence:update', { userId: user.id, presence: Presence.AWAY });
+      }
     }
   }
 
@@ -140,6 +149,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!user) return;
     await this.channelsService.updateLastRead(data.channelId, user.id);
     return { status: 'ok' };
+  }
+
+  @SubscribeMessage('presence:heartbeat')
+  async handleHeartbeat(@ConnectedSocket() socket: Socket) {
+    const user = socket.data.user;
+    if (!user) return;
+    await this.presenceService.heartbeat(user.id);
+  }
+
+  @SubscribeMessage('presence:set')
+  async handleSetPresence(@ConnectedSocket() socket: Socket, @MessageBody() data: { presence: string }) {
+    const user = socket.data.user;
+    if (!user) return;
+    await this.presenceService.setPresence(user.id, data.presence as any);
+    this.server.emit('presence:update', { userId: user.id, presence: data.presence });
   }
 
   emitToUser(userId: string, event: string, data: any) {

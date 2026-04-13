@@ -14,6 +14,7 @@ import { FilesModule } from './files/files.module';
 import { EmojiModule } from './emoji/emoji.module';
 import { SearchModule } from './search/search.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { PresenceModule } from './presence/presence.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     EmojiModule,
     SearchModule,
     NotificationsModule,
+    PresenceModule,
   ],
 })
 export class AppModule {}
