@@ -7,14 +7,49 @@ import { SidebarSection } from './SidebarSection';
 import { getSocket } from '@/lib/socket';
 import { CreateChannelDialog } from '@/components/channel/CreateChannelDialog';
 
-export function ChannelList() {
+type SortMode = 'activity' | 'az';
+
+function getSortMode(): SortMode {
+  if (typeof window === 'undefined') return 'az';
+  return (localStorage.getItem('channelSortMode') as SortMode) || 'az';
+}
+
+interface ChannelListProps {
+  showSortToggle?: boolean;
+}
+
+export function ChannelList({ showSortToggle = false }: ChannelListProps) {
   const { channels, activeChannelId, fetchChannels, starredChannelIds, toggleStar, setActiveChannel } = useChannelsStore();
   const unreadByChannel = useUnreadStore((s) => s.unreadByChannel);
   const [showCreateChannel, setShowCreateChannel] = useState(false);
+  const [sortMode, setSortMode] = useState<SortMode>('az');
+
+  useEffect(() => {
+    setSortMode(getSortMode());
+  }, []);
+
   useEffect(() => { fetchChannels(); }, [fetchChannels]);
 
-  const starredChannels = channels.filter((ch) => starredChannelIds.includes(ch.id));
-  const regularChannels = channels.filter((ch) => !starredChannelIds.includes(ch.id));
+  function handleSortChange(mode: SortMode) {
+    setSortMode(mode);
+    localStorage.setItem('channelSortMode', mode);
+  }
+
+  function sortChannels(chs: { id: string; name: string; type: string }[]) {
+    if (sortMode === 'activity') {
+      // Placeholder: sort by unread count descending (most active first), then alphabetically
+      return [...chs].sort((a, b) => {
+        const ua = unreadByChannel[a.id] || 0;
+        const ub = unreadByChannel[b.id] || 0;
+        if (ub !== ua) return ub - ua;
+        return a.name.localeCompare(b.name, 'de');
+      });
+    }
+    return [...chs].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  }
+
+  const starredChannels = sortChannels(channels.filter((ch) => starredChannelIds.includes(ch.id)));
+  const regularChannels = sortChannels(channels.filter((ch) => !starredChannelIds.includes(ch.id)));
 
   const totalStarredUnread = starredChannels.reduce((sum, ch) => sum + (unreadByChannel[ch.id] || 0), 0);
   const totalRegularUnread = regularChannels.reduce((sum, ch) => sum + (unreadByChannel[ch.id] || 0), 0);
@@ -63,6 +98,31 @@ export function ChannelList() {
 
   return (
     <div className="space-y-0.5">
+      {showSortToggle && (
+        <div className="flex items-center gap-1 px-3 py-1.5">
+          <span className="text-[10px] font-semibold uppercase text-slack-text mr-1">Sortierung</span>
+          <button
+            onClick={() => handleSortChange('activity')}
+            className={`rounded px-2 py-0.5 text-[10px] font-semibold transition-colors ${
+              sortMode === 'activity'
+                ? 'bg-white/20 text-white'
+                : 'text-slack-text hover:text-white'
+            }`}
+          >
+            Aktiv
+          </button>
+          <button
+            onClick={() => handleSortChange('az')}
+            className={`rounded px-2 py-0.5 text-[10px] font-semibold transition-colors ${
+              sortMode === 'az'
+                ? 'bg-white/20 text-white'
+                : 'text-slack-text hover:text-white'
+            }`}
+          >
+            A-Z
+          </button>
+        </div>
+      )}
       {starredChannels.length > 0 && (
         <SidebarSection title="Favoriten" badge={totalStarredUnread}>
           {starredChannels.map(renderChannel)}
