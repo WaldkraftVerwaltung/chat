@@ -1,16 +1,41 @@
 'use client';
-import { useState, useRef, KeyboardEvent } from 'react';
+import { useState, useRef, KeyboardEvent, useEffect, useCallback } from 'react';
 import { getSocket } from '@/lib/socket';
+import { apiFetch } from '@/lib/api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-export function MessageInput({ channelId }: { channelId: string }) {
+export function MessageInput({ channelId, threadParentId }: { channelId: string; threadParentId?: string }) {
   const [content, setContent] = useState('');
   const [pendingFile, setPendingFile] = useState<{ id: string; originalFilename: string; mimeType: string; sizeBytes: number; thumbnailKey: string | null } | null>(null);
   const [uploading, setUploading] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeout = useRef<NodeJS.Timeout>();
+  const draftTimeout = useRef<NodeJS.Timeout>();
+
+  // Load draft on channel mount
+  useEffect(() => {
+    apiFetch<any[]>('/drafts').then((drafts) => {
+      const draft = drafts.find((d) =>
+        d.channelId === channelId && (d.threadParentId || null) === (threadParentId || null)
+      );
+      if (draft) setContent(draft.content);
+    }).catch(() => {});
+  }, [channelId, threadParentId]);
+
+  // Auto-save draft with 2s debounce
+  const saveDraft = useCallback((value: string) => {
+    clearTimeout(draftTimeout.current);
+    draftTimeout.current = setTimeout(() => {
+      if (value.trim()) {
+        apiFetch('/drafts', {
+          method: 'PUT',
+          body: JSON.stringify({ channelId, threadParentId: threadParentId || undefined, content: value }),
+        }).catch(() => {});
+      }
+    }, 2000);
+  }, [channelId, threadParentId]);
 
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
@@ -19,10 +44,16 @@ export function MessageInput({ channelId }: { channelId: string }) {
   function sendMessage() {
     const text = content.trim();
     if (!text && !pendingFile) return;
-    getSocket().emit('message:send', { channelId, content: text || ' ', fileIds: pendingFile ? [pendingFile.id] : [] });
+    getSocket().emit('message:send', { channelId, content: text || ' ', fileIds: pendingFile ? [pendingFile.id] : [], threadParentId });
     setContent('');
     setPendingFile(null);
     textareaRef.current?.focus();
+    // Clear draft after sending
+    clearTimeout(draftTimeout.current);
+    apiFetch('/drafts', {
+      method: 'PUT',
+      body: JSON.stringify({ channelId, threadParentId: threadParentId || undefined, content: '' }),
+    }).catch(() => {});
   }
 
   function handleInput(value: string) {
@@ -31,6 +62,7 @@ export function MessageInput({ channelId }: { channelId: string }) {
     socket.emit('typing:start', { channelId });
     clearTimeout(typingTimeout.current);
     typingTimeout.current = setTimeout(() => { socket.emit('typing:stop', { channelId }); }, 3000);
+    saveDraft(value);
   }
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -64,7 +96,7 @@ export function MessageInput({ channelId }: { channelId: string }) {
       {pendingFile && (
         <div className="mb-2 flex items-center gap-2 rounded border bg-gray-50 px-3 py-1.5 text-sm">
           <span className="truncate text-gray-700 max-w-[300px]">{pendingFile.originalFilename}</span>
-          <button onClick={() => setPendingFile(null)} className="ml-auto text-gray-400 hover:text-gray-600" title="Entfernen">✕</button>
+          <button onClick={() => setPendingFile(null)} className="ml-auto text-gray-400 hover:text-gray-600" title="Entfernen">&#x2715;</button>
         </div>
       )}
       <div className="flex items-end gap-2 rounded-lg border bg-gray-50 px-3 py-2">
@@ -72,7 +104,7 @@ export function MessageInput({ channelId }: { channelId: string }) {
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
           className="rounded p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-200 disabled:opacity-50"
-          title="Datei anhängen"
+          title="Datei anhaengen"
         >
           {uploading ? (
             <span className="text-xs">...</span>

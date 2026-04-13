@@ -18,6 +18,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { PresenceModule } from './presence/presence.module';
 import { UserGroupsModule } from './user-groups/user-groups.module';
 import { SavedItemsModule } from './saved-items/saved-items.module';
+import { DraftsModule } from './drafts/drafts.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { SavedItemsModule } from './saved-items/saved-items.module';
     PresenceModule,
     UserGroupsModule,
     SavedItemsModule,
+    DraftsModule,
   ],
 })
 export class AppModule {}
