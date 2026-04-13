@@ -38,7 +38,7 @@ export class User {
   @Column({ length: 100, default: 'Europe/Berlin' })
   timezone: string;
 
-  @Column({ name: 'avatar_url', nullable: true })
+  @Column({ name: 'avatar_url', type: 'varchar', nullable: true })
   avatarUrl: string | null;
 
   @Column({ name: 'status_text', length: 100, nullable: true })
@@ -68,7 +68,7 @@ export class User {
   @Column({ name: 'two_factor_enabled', default: false })
   twoFactorEnabled: boolean;
 
-  @Column({ name: 'two_factor_secret', nullable: true })
+  @Column({ name: 'two_factor_secret', type: 'varchar', nullable: true })
   twoFactorSecret: string | null;
 
   @Column({ name: 'dnd_enabled', default: false })

@@ -27,7 +27,7 @@ export class CustomEmoji {
   @JoinColumn({ name: 'uploaded_by' })
   uploader: User;
 
-  @Column({ name: 'alias_for', nullable: true })
+  @Column({ name: 'alias_for', type: 'varchar', nullable: true })
   aliasFor: string | null;
 
   @CreateDateColumn({ name: 'created_at' })

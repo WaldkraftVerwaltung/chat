@@ -7,7 +7,7 @@ export class FileAttachment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'message_id', nullable: true })
+  @Column({ name: 'message_id', type: 'varchar', nullable: true })
   messageId: string | null;
 
   @ManyToOne(() => Message, { onDelete: 'CASCADE', nullable: true })
@@ -36,16 +36,16 @@ export class FileAttachment {
   @Column({ name: 'storage_key' })
   storageKey: string;
 
-  @Column({ name: 'thumbnail_key', nullable: true })
+  @Column({ name: 'thumbnail_key', type: 'varchar', nullable: true })
   thumbnailKey: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'int', nullable: true })
   width: number | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'int', nullable: true })
   height: number | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   description: string | null;
 
   @CreateDateColumn({ name: 'created_at' })

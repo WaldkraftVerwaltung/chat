@@ -18,28 +18,28 @@ export class Notification {
   @Column({ type: 'varchar', length: 50 })
   type: string;
 
-  @Column({ name: 'message_id', nullable: true })
+  @Column({ name: 'message_id', type: 'varchar', nullable: true })
   messageId: string | null;
 
   @ManyToOne(() => Message, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'message_id' })
   message: Message;
 
-  @Column({ name: 'channel_id', nullable: true })
+  @Column({ name: 'channel_id', type: 'varchar', nullable: true })
   channelId: string | null;
 
   @ManyToOne(() => Channel, { nullable: true })
   @JoinColumn({ name: 'channel_id' })
   channel: Channel;
 
-  @Column({ name: 'actor_id', nullable: true })
+  @Column({ name: 'actor_id', type: 'varchar', nullable: true })
   actorId: string | null;
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'actor_id' })
   actor: User;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   summary: string;
 
   @Column({ name: 'is_read', default: false })

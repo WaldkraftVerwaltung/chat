@@ -11,17 +11,17 @@ export class Message {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'channel_id', nullable: true })
+  @Column({ name: 'channel_id', type: 'varchar', nullable: true })
   channelId: string | null;
 
   @ManyToOne(() => Channel, { onDelete: 'CASCADE', nullable: true })
   @JoinColumn({ name: 'channel_id' })
   channel: Channel;
 
-  @Column({ name: 'dm_conversation_id', nullable: true })
+  @Column({ name: 'dm_conversation_id', type: 'varchar', nullable: true })
   dmConversationId: string | null;
 
-  @Column({ name: 'thread_parent_id', nullable: true })
+  @Column({ name: 'thread_parent_id', type: 'varchar', nullable: true })
   threadParentId: string | null;
 
   @ManyToOne(() => Message, { nullable: true })
@@ -56,7 +56,7 @@ export class Message {
   @Column({ name: 'is_system_message', default: false })
   isSystemMessage: boolean;
 
-  @Column({ name: 'system_message_type', nullable: true })
+  @Column({ name: 'system_message_type', type: 'varchar', nullable: true })
   systemMessageType: string | null;
 
   @Column({ name: 'scheduled_at', type: 'timestamptz', nullable: true })

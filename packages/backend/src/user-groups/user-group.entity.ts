@@ -21,7 +21,7 @@ export class UserGroup {
   @Column({ length: 80, unique: true })
   handle: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   description: string;
 
   @Column({ name: 'created_by' })

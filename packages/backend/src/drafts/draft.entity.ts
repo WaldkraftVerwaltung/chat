@@ -13,13 +13,13 @@ export class Draft {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ name: 'channel_id', nullable: true })
+  @Column({ name: 'channel_id', type: 'varchar', nullable: true })
   channelId: string | null;
 
-  @Column({ name: 'dm_conversation_id', nullable: true })
+  @Column({ name: 'dm_conversation_id', type: 'varchar', nullable: true })
   dmConversationId: string | null;
 
-  @Column({ name: 'thread_parent_id', nullable: true })
+  @Column({ name: 'thread_parent_id', type: 'varchar', nullable: true })
   threadParentId: string | null;
 
   @Column({ type: 'text' })
