@@ -632,7 +632,7 @@ async function seed() {
   }).catch(() => null);
 
   // Create DM 1: Jacob + Björn + Lisa
-  let dm1: DmConversation | null = null;
+  let dm1: any = null;
   try {
     dm1 = dmConvRepo.create({ workspaceId: workspace.id, isGroup: true });
     dm1 = await dmConvRepo.save(dm1);
@@ -662,7 +662,7 @@ async function seed() {
   }
 
   // DM 2: Thomas + Stefan + Daniel (Dev-Team)
-  let dm2: DmConversation | null = null;
+  let dm2: any = null;
   try {
     dm2 = dmConvRepo.create({ workspaceId: workspace.id, isGroup: true });
     dm2 = await dmConvRepo.save(dm2);
@@ -692,7 +692,7 @@ async function seed() {
   }
 
   // DM 3: Jacob + Andre (1:1)
-  let dm3: DmConversation | null = null;
+  let dm3: any = null;
   try {
     dm3 = dmConvRepo.create({ workspaceId: workspace.id, isGroup: false });
     dm3 = await dmConvRepo.save(dm3);
