@@ -3,6 +3,10 @@ import { useEffect } from 'react';
 import { getSocket } from '@/lib/socket';
 import { useMessagesStore } from '@/stores/messages.store';
 import { useThreadsStore } from '@/stores/threads.store';
+import { useNotificationsStore } from '@/stores/notifications.store';
+import { usePresenceStore } from '@/stores/presence.store';
+import { useUnreadStore } from '@/stores/unread.store';
+import { useChannelsStore } from '@/stores/channels.store';
 
 export function useChannelSocket(channelId: string) {
   const addMessage = useMessagesStore((s) => s.addMessage);
@@ -13,7 +17,12 @@ export function useChannelSocket(channelId: string) {
     socket.emit('channel:join', { channelId });
 
     const handleNewMessage = (message: any) => {
-      if (message.channelId === channelId || message.channel_id === channelId) addMessage(channelId, message);
+      const msgChannelId = message.channelId || message.channel_id;
+      if (msgChannelId === channelId) {
+        addMessage(channelId, message);
+      } else if (msgChannelId) {
+        useUnreadStore.getState().incrementUnread(msgChannelId);
+      }
     };
 
     const handleReactionAdd = (data: { messageId: string; emojiCode: string; userId: string }) => {
@@ -62,10 +71,27 @@ export function useChannelSocket(channelId: string) {
       useThreadsStore.getState().addReply(data.parentId, data.message);
     };
 
+    const handleNotification = (data: any) => {
+      useNotificationsStore.getState().addNotification(data);
+      if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+        const title = data.actor?.displayName
+          ? `${data.actor.displayName} hat dich erwähnt`
+          : 'Neue Benachrichtigung';
+        const body = data.summary || '';
+        new Notification(title, { body });
+      }
+    };
+
+    const handlePresenceUpdate = (data: { userId: string; presence: 'active' | 'away' | 'dnd' }) => {
+      usePresenceStore.getState().setPresence(data.userId, data.presence);
+    };
+
     socket.on('message:new', handleNewMessage);
     socket.on('reaction:add', handleReactionAdd);
     socket.on('reaction:remove', handleReactionRemove);
     socket.on('thread:reply', handleThreadReply);
+    socket.on('notification', handleNotification);
+    socket.on('presence:update', handlePresenceUpdate);
 
     return () => {
       socket.emit('channel:leave', { channelId });
@@ -73,6 +99,42 @@ export function useChannelSocket(channelId: string) {
       socket.off('reaction:add', handleReactionAdd);
       socket.off('reaction:remove', handleReactionRemove);
       socket.off('thread:reply', handleThreadReply);
+      socket.off('notification', handleNotification);
+      socket.off('presence:update', handlePresenceUpdate);
     };
   }, [channelId, addMessage, updateMessage]);
+}
+
+export function useGlobalSocket() {
+  useEffect(() => {
+    const socket = getSocket();
+
+    const handleNotification = (data: any) => {
+      useNotificationsStore.getState().addNotification(data);
+      if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+        const title = data.actor?.displayName
+          ? `${data.actor.displayName} hat dich erwähnt`
+          : 'Neue Benachrichtigung';
+        const body = data.summary || '';
+        new Notification(title, { body });
+      }
+    };
+
+    const handlePresenceUpdate = (data: { userId: string; presence: 'active' | 'away' | 'dnd' }) => {
+      usePresenceStore.getState().setPresence(data.userId, data.presence);
+    };
+
+    socket.on('notification', handleNotification);
+    socket.on('presence:update', handlePresenceUpdate);
+
+    const heartbeatInterval = setInterval(() => {
+      socket.emit('presence:heartbeat');
+    }, 60000);
+
+    return () => {
+      socket.off('notification', handleNotification);
+      socket.off('presence:update', handlePresenceUpdate);
+      clearInterval(heartbeatInterval);
+    };
+  }, []);
 }
