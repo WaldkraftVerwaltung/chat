@@ -3,6 +3,8 @@ import { useEffect, useRef } from 'react';
 import { useMessagesStore } from '@/stores/messages.store';
 import { MessageItem } from './MessageItem';
 
+const GROUP_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+
 export function MessageList({ channelId }: { channelId: string }) {
   const messages = useMessagesStore((s) => s.messagesByChannel[channelId] || []);
   const fetchMessages = useMessagesStore((s) => s.fetchMessages);
@@ -17,7 +19,16 @@ export function MessageList({ channelId }: { channelId: string }) {
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="py-4">
-        {messages.map((msg) => <MessageItem key={msg.id} message={msg} channelId={channelId} />)}
+        {messages.map((msg, i) => {
+          const prev = i > 0 ? messages[i - 1] : null;
+          const isGrouped = prev
+            && !prev.isDeleted
+            && !msg.isDeleted
+            && prev.user?.id === msg.user?.id
+            && (new Date(msg.createdAt).getTime() - new Date(prev.createdAt).getTime()) < GROUP_THRESHOLD_MS;
+
+          return <MessageItem key={msg.id} message={msg} channelId={channelId} isGrouped={!!isGrouped} />;
+        })}
         <div ref={bottomRef} />
       </div>
     </div>

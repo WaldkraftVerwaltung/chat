@@ -1,86 +1,342 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { ReactionBar } from './ReactionBar';
 import { FilePreview } from './FilePreview';
+import { EmojiPicker } from './EmojiPicker';
+import { MessageContextMenu } from './MessageContextMenu';
 import { useThreadsStore } from '@/stores/threads.store';
+import { useAuthStore } from '@/stores/auth.store';
+import { useMessagesStore } from '@/stores/messages.store';
 import { Avatar } from '@/components/ui/Avatar';
+import { getSocket } from '@/lib/socket';
+import { apiFetch } from '@/lib/api';
+import { renderMrkdwn } from '@/lib/mrkdwn';
 
-interface MessageItemProps {
-  message: {
-    id: string; content: string; isEdited: boolean; isDeleted: boolean; createdAt: string;
-    user?: { id: string; displayName: string; avatarUrl: string | null };
-    reactions?: { emoji: string; count: number; userIds: string[] }[];
-    replyCount?: number;
-    files?: { id: string; originalFilename: string; mimeType: string; sizeBytes: number; thumbnailKey: string | null }[];
-  };
-  channelId: string;
+interface MessageFile {
+  id: string;
+  originalFilename: string;
+  mimeType: string;
+  sizeBytes: number;
+  thumbnailKey: string | null;
 }
 
-export function MessageItem({ message, channelId }: MessageItemProps) {
-  const [showActions, setShowActions] = useState(false);
+interface MessageUser {
+  id: string;
+  displayName: string;
+  avatarUrl: string | null;
+}
 
-  if (message.isDeleted) return <div className="px-5 py-1 text-sm text-gray-400 italic">Diese Nachricht wurde geloescht.</div>;
+interface Reaction {
+  emoji: string;
+  count: number;
+  userIds: string[];
+}
+
+interface MessageData {
+  id: string;
+  content: string;
+  isEdited: boolean;
+  isDeleted: boolean;
+  isPinned?: boolean;
+  createdAt: string;
+  userId?: string;
+  user?: MessageUser;
+  reactions?: Reaction[];
+  replyCount?: number;
+  files?: MessageFile[];
+  threadParticipants?: MessageUser[];
+}
+
+interface MessageItemProps {
+  message: MessageData;
+  channelId: string;
+  isGrouped?: boolean;
+}
+
+export function MessageItem({ message, channelId, isGrouped = false }: MessageItemProps) {
+  const [showActions, setShowActions] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(message.content);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const messageRef = useRef<HTMLDivElement>(null);
+  const currentUser = useAuthStore((s) => s.user);
+  const isOwn = currentUser?.id === (message.userId || message.user?.id);
+
+  // Deleted message
+  if (message.isDeleted) {
+    return (
+      <div className="px-5 py-1.5 flex gap-3">
+        <div className="w-9 flex-shrink-0" />
+        <p className="text-sm text-gray-400 italic">Diese Nachricht wurde geloescht.</p>
+      </div>
+    );
+  }
+
   const time = new Date(message.createdAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 
+  function handleContextMenu(e: React.MouseEvent) {
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY });
+  }
+
+  function handleReaction(emoji: string) {
+    getSocket().emit('reaction:toggle', { messageId: message.id, emojiCode: emoji, channelId });
+    setShowEmojiPicker(false);
+  }
+
+  function handleOpenThread() {
+    useThreadsStore.getState().openThread(message.id);
+  }
+
+  async function handlePin() {
+    try {
+      await apiFetch(`/messages/${message.id}/pin`, { method: 'POST' });
+      useMessagesStore.getState().updateMessage(message.id, { isPinned: !message.isPinned });
+    } catch (err) {
+      console.error('Pin failed:', err);
+    }
+  }
+
+  function handleEdit() {
+    const text = editContent.trim();
+    if (!text || text === message.content) {
+      setIsEditing(false);
+      return;
+    }
+    try {
+      getSocket().emit('message:edit', { messageId: message.id, content: text, channelId });
+      useMessagesStore.getState().updateMessage(message.id, { content: text, isEdited: true });
+      setIsEditing(false);
+    } catch (err) {
+      console.error('Edit failed:', err);
+    }
+  }
+
+  function handleDelete() {
+    try {
+      getSocket().emit('message:delete', { messageId: message.id, channelId });
+      useMessagesStore.getState().removeMessage(channelId, message.id);
+    } catch (err) {
+      console.error('Delete failed:', err);
+    }
+  }
+
+  function handleCopyText() {
+    navigator.clipboard.writeText(message.content).catch(() => {});
+  }
+
+  function handleCopyLink() {
+    const url = `${window.location.origin}/chat/${channelId}?msg=${message.id}`;
+    navigator.clipboard.writeText(url).catch(() => {});
+  }
+
+  function handleMarkUnread() {
+    getSocket().emit('message:markUnread', { messageId: message.id, channelId });
+  }
+
+  function handleForward() {
+    handleCopyText();
+  }
+
+  function handleRemind(minutes: number) {
+    getSocket().emit('message:remind', { messageId: message.id, minutes });
+  }
+
+  // The rendered mrkdwn HTML is generated from user-authored message content that
+  // has been escaped via escapeHtml() inside renderMrkdwn before any transformations.
+  const renderedHtml = renderMrkdwn(message.content);
+
   return (
-    <div
-      className="group relative flex gap-3 px-5 py-1.5 hover:bg-gray-50"
-      onMouseEnter={() => setShowActions(true)}
-      onMouseLeave={() => setShowActions(false)}
-    >
-      <div className="mt-0.5 flex-shrink-0">
-        <Avatar name={message.user?.displayName || '?'} avatarUrl={message.user?.avatarUrl} size="md" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-baseline gap-2">
-          <span className="text-sm font-semibold text-gray-900">{message.user?.displayName || 'Unbekannt'}</span>
-          <span className="text-xs text-gray-500">{time}</span>
-          {message.isEdited && <span className="text-xs text-gray-400">(bearbeitet)</span>}
-        </div>
-        <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">{message.content}</p>
-        {message.files && message.files.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-1">
-            {message.files.map((file) => <FilePreview key={file.id} file={file} />)}
+    <>
+      <div
+        ref={messageRef}
+        className={`group relative flex gap-3 px-5 hover:bg-amber-50/40 transition-colors ${
+          isGrouped ? 'py-0.5' : 'py-1.5'
+        } ${message.isPinned ? 'bg-yellow-50/50 border-l-2 border-yellow-400' : ''}`}
+        onMouseEnter={() => setShowActions(true)}
+        onMouseLeave={() => { setShowActions(false); setShowMoreMenu(false); }}
+        onContextMenu={handleContextMenu}
+      >
+        {/* Avatar or time gutter */}
+        {isGrouped ? (
+          <div className="w-9 flex-shrink-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <span className="text-[10px] text-gray-400">{time}</span>
+          </div>
+        ) : (
+          <div className="mt-0.5 flex-shrink-0">
+            <Avatar name={message.user?.displayName || '?'} avatarUrl={message.user?.avatarUrl} size="md" />
           </div>
         )}
-        <ReactionBar
-          messageId={message.id}
-          channelId={channelId}
-          reactions={message.reactions || []}
-        />
-        {message.replyCount != null && message.replyCount > 0 && (
-          <button
-            onClick={() => useThreadsStore.getState().openThread(message.id)}
-            className="mt-1 text-xs text-indigo-600 hover:underline"
-          >
-            {message.replyCount} Antwort{message.replyCount !== 1 ? 'en' : ''}
-          </button>
+
+        {/* Content */}
+        <div className="min-w-0 flex-1">
+          {!isGrouped && (
+            <div className="flex items-baseline gap-2">
+              <span className="text-sm font-bold text-gray-900">{message.user?.displayName || 'Unbekannt'}</span>
+              <span className="text-xs text-gray-500">{time}</span>
+              {message.isEdited && <span className="text-xs text-gray-400">(bearbeitet)</span>}
+              {message.isPinned && <span className="text-xs text-yellow-600">Angepinnt</span>}
+            </div>
+          )}
+
+          {/* Edit mode or rendered content */}
+          {isEditing ? (
+            <div className="mt-1">
+              <textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleEdit(); }
+                  if (e.key === 'Escape') { setIsEditing(false); setEditContent(message.content); }
+                }}
+                className="w-full rounded-md border border-indigo-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-200 resize-none"
+                rows={Math.max(2, editContent.split('\n').length)}
+                autoFocus
+              />
+              <div className="mt-1 flex items-center gap-2">
+                <button
+                  onClick={handleEdit}
+                  className="rounded bg-indigo-600 px-3 py-1 text-xs text-white hover:bg-indigo-700"
+                >
+                  Speichern
+                </button>
+                <button
+                  onClick={() => { setIsEditing(false); setEditContent(message.content); }}
+                  className="rounded px-3 py-1 text-xs text-gray-600 hover:bg-gray-100"
+                >
+                  Abbrechen
+                </button>
+                <span className="text-xs text-gray-400">Escape zum Abbrechen, Enter zum Speichern</span>
+              </div>
+            </div>
+          ) : (
+            <>
+              {isGrouped && message.isEdited && (
+                <span className="text-xs text-gray-400">(bearbeitet)</span>
+              )}
+              <div
+                className="text-sm text-gray-800 whitespace-pre-wrap break-words [&_pre]:whitespace-pre-wrap [&_a]:text-indigo-600 [&_a]:hover:underline"
+                dangerouslySetInnerHTML={{ __html: renderedHtml }}
+              />
+            </>
+          )}
+
+          {/* File previews */}
+          {message.files && message.files.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-1">
+              {message.files.map((file) => <FilePreview key={file.id} file={file} />)}
+            </div>
+          )}
+
+          {/* Reactions */}
+          <ReactionBar
+            messageId={message.id}
+            channelId={channelId}
+            reactions={message.reactions || []}
+          />
+
+          {/* Thread reply count */}
+          {message.replyCount != null && message.replyCount > 0 && (
+            <button
+              onClick={handleOpenThread}
+              className="mt-1.5 flex items-center gap-2 rounded-md px-2 py-1 text-xs text-indigo-600 hover:bg-indigo-50 transition-colors group/thread"
+            >
+              {message.threadParticipants && message.threadParticipants.length > 0 && (
+                <div className="flex -space-x-1.5">
+                  {message.threadParticipants.slice(0, 3).map((p, i) => (
+                    <Avatar key={p.id || i} name={p.displayName} avatarUrl={p.avatarUrl} size="sm" />
+                  ))}
+                </div>
+              )}
+              <span className="font-medium group-hover/thread:underline">
+                {message.replyCount} Antwort{message.replyCount !== 1 ? 'en' : ''}
+              </span>
+              <span className="text-gray-400">Zum Ansehen klicken</span>
+            </button>
+          )}
+        </div>
+
+        {/* Floating action bar */}
+        {showActions && !isEditing && (
+          <div className="absolute right-4 -top-3 flex items-center rounded-lg border bg-white shadow-md z-10">
+            <ActionButton icon="&#128512;" title="Reaktion hinzufuegen" onClick={() => setShowEmojiPicker(!showEmojiPicker)} />
+            <ActionButton icon="&#128172;" title="Im Thread antworten" onClick={handleOpenThread} />
+            <ActionButton icon="&#128204;" title={message.isPinned ? 'Losloesung aufheben' : 'Anpinnen'} onClick={handlePin} />
+            {isOwn && (
+              <ActionButton icon="&#9998;" title="Bearbeiten" onClick={() => { setIsEditing(true); setEditContent(message.content); }} />
+            )}
+            {isOwn && (
+              <ActionButton icon="&#128465;" title="Loeschen" onClick={handleDelete} />
+            )}
+            <div className="relative">
+              <ActionButton icon="&#8943;" title="Mehr" onClick={() => setShowMoreMenu(!showMoreMenu)} />
+              {showMoreMenu && (
+                <div className="absolute right-0 top-full mt-1 min-w-[180px] rounded-lg border bg-white py-1 shadow-xl z-20">
+                  <MoreMenuItem label="Link kopieren" onClick={() => { handleCopyLink(); setShowMoreMenu(false); }} />
+                  <MoreMenuItem label="Text kopieren" onClick={() => { handleCopyText(); setShowMoreMenu(false); }} />
+                  <MoreMenuItem label="Ab hier als ungelesen" onClick={() => { handleMarkUnread(); setShowMoreMenu(false); }} />
+                  <MoreMenuItem label="Weiterleiten" onClick={() => { handleForward(); setShowMoreMenu(false); }} />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Emoji picker from action bar */}
+        {showEmojiPicker && (
+          <div className="absolute right-4 top-8 z-50">
+            <EmojiPicker
+              onSelect={handleReaction}
+              onClose={() => setShowEmojiPicker(false)}
+            />
+          </div>
         )}
       </div>
 
-      {showActions && (
-        <div className="absolute right-4 top-1 flex items-center gap-1 rounded-lg border bg-white px-1 py-0.5 shadow-sm">
-          <button
-            onClick={() => {
-              useThreadsStore.getState().openThread(message.id);
-            }}
-            className="rounded p-1 text-xs text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-            title="Thread oeffnen"
-          >
-            💬
-          </button>
-          <button
-            onClick={() => {
-              const bar = document.getElementById(`reaction-picker-${message.id}`);
-              if (bar) bar.click();
-            }}
-            className="rounded p-1 text-xs text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-            title="Reaktion hinzufuegen"
-          >
-            😊
-          </button>
-        </div>
+      {/* Context menu */}
+      {contextMenu && (
+        <MessageContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          isOwn={isOwn}
+          isPinned={!!message.isPinned}
+          onClose={() => setContextMenu(null)}
+          onReplyInThread={handleOpenThread}
+          onCopyLink={handleCopyLink}
+          onCopyText={handleCopyText}
+          onPin={handlePin}
+          onMarkUnread={handleMarkUnread}
+          onEdit={() => { setIsEditing(true); setEditContent(message.content); }}
+          onDelete={handleDelete}
+          onForward={handleForward}
+          onRemind={handleRemind}
+        />
       )}
-    </div>
+    </>
+  );
+}
+
+function ActionButton({ icon, title, onClick }: { icon: string; title: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="px-2 py-1.5 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-700 first:rounded-l-lg last:rounded-r-lg transition-colors"
+      title={title}
+    >
+      <span dangerouslySetInnerHTML={{ __html: icon }} />
+    </button>
+  );
+}
+
+function MoreMenuItem({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex w-full px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 text-left"
+    >
+      {label}
+    </button>
   );
 }
