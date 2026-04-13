@@ -43,7 +43,7 @@ services:
     restart: unless-stopped
     depends_on: [postgres, redis, meilisearch, minio]
     ports:
-      - '3010:3001'
+      - '4010:3001'
     env_file:
       - .env
 
@@ -55,7 +55,7 @@ services:
     restart: unless-stopped
     depends_on: [backend]
     ports:
-      - '3011:3000'
+      - '4011:3000'
     env_file:
       - .env
 

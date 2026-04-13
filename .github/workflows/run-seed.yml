@@ -10,7 +10,7 @@ jobs:
       - name: Run seed on server
         uses: appleboy/ssh-action@v1
         with:
-          host: 91.107.233.103
+          host: 37.27.248.253
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |

@@ -10,7 +10,7 @@ jobs:
       - name: Restart
         uses: appleboy/ssh-action@v1
         with:
-          host: 91.107.233.103
+          host: 37.27.248.253
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           command_timeout: 15m
@@ -32,5 +32,5 @@ jobs:
             docker compose logs frontend --tail 20
 
             echo "=== CURL TEST ==="
-            curl -s -o /dev/null -w "Backend localhost:3010 -> HTTP %{http_code}\n" http://localhost:3010/api/auth/login 2>&1 || echo "Backend unreachable"
-            curl -s -o /dev/null -w "Frontend localhost:3011 -> HTTP %{http_code}\n" http://localhost:3011 2>&1 || echo "Frontend unreachable"
+            curl -s -o /dev/null -w "Backend localhost:4010 -> HTTP %{http_code}\n" http://localhost:4010/api/auth/login 2>&1 || echo "Backend unreachable"
+            curl -s -o /dev/null -w "Frontend localhost:4011 -> HTTP %{http_code}\n" http://localhost:4011 2>&1 || echo "Frontend unreachable"

@@ -10,7 +10,7 @@ jobs:
       - name: Check services
         uses: appleboy/ssh-action@v1
         with:
-          host: 91.107.233.103
+          host: 37.27.248.253
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
@@ -18,9 +18,9 @@ jobs:
             echo "=== Containers ==="
             docker compose ps
             echo "=== Backend ==="
-            curl -s -o /dev/null -w "HTTP %{http_code}\n" http://localhost:3010/api || echo "DOWN"
+            curl -s -o /dev/null -w "HTTP %{http_code}\n" http://localhost:4010/api || echo "DOWN"
             echo "=== Frontend ==="
-            curl -s -o /dev/null -w "HTTP %{http_code}\n" http://localhost:3011 || echo "DOWN"
+            curl -s -o /dev/null -w "HTTP %{http_code}\n" http://localhost:4011 || echo "DOWN"
             echo "=== Backend Logs ==="
             docker compose logs backend --tail 15
             echo "=== Frontend Logs ==="
