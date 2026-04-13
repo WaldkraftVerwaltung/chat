@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ReactionBar } from './ReactionBar';
 import { FilePreview } from './FilePreview';
 import { useThreadsStore } from '@/stores/threads.store';
+import { Avatar } from '@/components/ui/Avatar';
 
 interface MessageItemProps {
   message: {
@@ -27,7 +28,9 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
-      <div className="mt-0.5 h-9 w-9 flex-shrink-0 rounded bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-600">{message.user?.displayName?.[0]?.toUpperCase() || '?'}</div>
+      <div className="mt-0.5 flex-shrink-0">
+        <Avatar name={message.user?.displayName || '?'} avatarUrl={message.user?.avatarUrl} size="md" />
+      </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
           <span className="text-sm font-semibold text-gray-900">{message.user?.displayName || 'Unbekannt'}</span>

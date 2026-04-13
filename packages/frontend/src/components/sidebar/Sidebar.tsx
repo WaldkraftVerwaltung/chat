@@ -7,6 +7,7 @@ import { useSearchStore } from '@/stores/search.store';
 import { useNotificationsStore } from '@/stores/notifications.store';
 import { usePresenceStore } from '@/stores/presence.store';
 import { apiFetch } from '@/lib/api';
+import { Avatar } from '@/components/ui/Avatar';
 
 function PresenceDot({ presence }: { presence: 'active' | 'away' | 'dnd' | undefined }) {
   if (!presence || presence === 'away') {
@@ -130,11 +131,8 @@ export function Sidebar() {
         )}
       </nav>
       <div className="border-t px-4 py-3 flex items-center gap-2">
-        <div className="relative h-8 w-8 flex-shrink-0">
-          <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold">
-            {user?.displayName?.[0]?.toUpperCase() || '?'}
-          </div>
-          <PresenceDot presence={myPresence} />
+        <div className="relative flex-shrink-0">
+          <Avatar name={user?.displayName || '?'} avatarUrl={(user as any)?.avatarUrl} size="sm" presence={myPresence} />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium truncate flex items-center gap-1">
