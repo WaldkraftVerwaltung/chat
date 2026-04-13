@@ -17,7 +17,7 @@ export function MessageList({ channelId }: { channelId: string }) {
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="py-4">
-        {messages.map((msg) => <MessageItem key={msg.id} message={msg} />)}
+        {messages.map((msg) => <MessageItem key={msg.id} message={msg} channelId={channelId} />)}
         <div ref={bottomRef} />
       </div>
     </div>

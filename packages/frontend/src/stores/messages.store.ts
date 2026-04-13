@@ -6,6 +6,7 @@ interface Message {
   isEdited: boolean; isDeleted: boolean; isPinned: boolean;
   threadParentId: string | null; createdAt: string;
   user?: { id: string; displayName: string; avatarUrl: string | null };
+  reactions?: { emoji: string; count: number; userIds: string[] }[];
 }
 
 interface MessagesState {
