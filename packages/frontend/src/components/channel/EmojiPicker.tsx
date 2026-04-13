@@ -110,7 +110,7 @@ export function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
         ) : (
           <>
             {categoryKeys.map((cat) => {
-              const emojis = categories[cat];
+              const emojis = (categories as Record<string, string[]>)[cat];
               if (emojis.length === 0) return null;
               return (
                 <div key={cat} className={cat === activeCategory ? '' : 'hidden'}>
