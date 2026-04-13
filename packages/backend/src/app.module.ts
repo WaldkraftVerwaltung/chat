@@ -12,6 +12,7 @@ import { WorkspacesModule } from './workspaces/workspaces.module';
 import { ReactionsModule } from './reactions/reactions.module';
 import { FilesModule } from './files/files.module';
 import { EmojiModule } from './emoji/emoji.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { EmojiModule } from './emoji/emoji.module';
     ReactionsModule,
     FilesModule,
     EmojiModule,
+    SearchModule,
   ],
 })
 export class AppModule {}

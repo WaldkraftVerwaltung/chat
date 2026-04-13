@@ -4,11 +4,13 @@ import { Repository } from 'typeorm';
 import { Message } from './message.entity';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
+import { SearchService } from '../search/search.service';
 
 @Injectable()
 export class MessagesService {
   constructor(
     @InjectRepository(Message) private readonly messageRepo: Repository<Message>,
+    private readonly searchService: SearchService,
   ) {}
 
   async create(dto: CreateMessageDto, channelId: string, userId: string): Promise<Message> {
@@ -20,7 +22,14 @@ export class MessagesService {
       alsoSentToChannel: dto.alsoSentToChannel || false,
     });
     const saved = await this.messageRepo.save(message);
-    return this.findById(saved.id);
+    const result = await this.findById(saved.id);
+    this.searchService.indexMessage({
+      id: result.id, content: result.content, channelId: result.channelId,
+      dmConversationId: result.dmConversationId, userId: result.userId,
+      userName: result.user?.displayName || '', channelName: null,
+      isPinned: false, hasFile: false, createdAt: result.createdAt,
+    }).catch(() => {}); // Don't block message send on search index failure
+    return result;
   }
 
   async findByChannel(channelId: string, limit = 50, before?: Date): Promise<Message[]> {
@@ -57,6 +66,7 @@ export class MessagesService {
     msg.isDeleted = true;
     msg.content = '';
     await this.messageRepo.save(msg);
+    this.searchService.deleteMessage(id).catch(() => {});
   }
 
   async getThreadReplies(parentId: string, limit = 50): Promise<Message[]> {
