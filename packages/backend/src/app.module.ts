@@ -15,6 +15,7 @@ import { EmojiModule } from './emoji/emoji.module';
 import { SearchModule } from './search/search.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PresenceModule } from './presence/presence.module';
+import { UserGroupsModule } from './user-groups/user-groups.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { PresenceModule } from './presence/presence.module';
     SearchModule,
     NotificationsModule,
     PresenceModule,
+    UserGroupsModule,
   ],
 })
 export class AppModule {}

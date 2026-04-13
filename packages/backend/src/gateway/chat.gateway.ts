@@ -10,6 +10,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { MentionDetectorService } from '../notifications/mention-detector.service';
 import { ChannelsService } from '../channels/channels.service';
 import { PresenceService } from '../presence/presence.service';
+import { UserGroupsService } from '../user-groups/user-groups.service';
 import { Presence } from '@chat/shared';
 
 @WebSocketGateway({ cors: { origin: '*', credentials: true }, namespace: '/' })
@@ -27,6 +28,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private mentionDetector: MentionDetectorService,
     private channelsService: ChannelsService,
     private presenceService: PresenceService,
+    private userGroupsService: UserGroupsService,
   ) {}
 
   async handleConnection(socket: Socket) {
@@ -78,7 +80,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // Mention detection and notification triggers
     const members = await this.channelsService.getMembers(data.channelId);
     const userMap = new Map(members.map((m) => [m.userId, m.user?.displayName || '']));
-    const mentions = this.mentionDetector.detect(data.content, userMap);
+
+    // Build group map for @group mention support
+    const groups = await this.userGroupsService.findAll(user.workspaceId);
+    const groupMap = new Map(groups.map((g) => [g.handle.toLowerCase(), (g.members || []).map((m) => m.userId)]));
+
+    const mentions = this.mentionDetector.detect(data.content, userMap, groupMap);
 
     for (const mention of mentions) {
       if (mention.type === 'user' && mention.userId && mention.userId !== user.id) {
@@ -98,6 +105,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             summary: `${user.displayName} hat @${mention.type} in einem Channel verwendet`,
           });
           this.server.to(`user:${member.userId}`).emit('notification', notif);
+        }
+      }
+      if (mention.type === 'group' && mention.userIds) {
+        const memberUserIds = new Set(members.map((m) => m.userId));
+        for (const groupUserId of mention.userIds) {
+          if (groupUserId === user.id) continue;
+          if (!memberUserIds.has(groupUserId)) continue; // only notify channel members
+          const notif = await this.notificationsService.create({
+            userId: groupUserId, type: 'mention', messageId: message.id,
+            channelId: data.channelId, actorId: user.id,
+            summary: `${user.displayName} hat @${mention.groupHandle} in einem Channel erwaehnt`,
+          });
+          this.server.to(`user:${groupUserId}`).emit('notification', notif);
         }
       }
     }

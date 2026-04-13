@@ -8,9 +8,10 @@ import { ReactionsModule } from '../reactions/reactions.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { ChannelsModule } from '../channels/channels.module';
 import { PresenceModule } from '../presence/presence.module';
+import { UserGroupsModule } from '../user-groups/user-groups.module';
 
 @Module({
-  imports: [JwtModule.register({}), UsersModule, MessagesModule, ReactionsModule, NotificationsModule, ChannelsModule, PresenceModule],
+  imports: [JwtModule.register({}), UsersModule, MessagesModule, ReactionsModule, NotificationsModule, ChannelsModule, PresenceModule, UserGroupsModule],
   providers: [ChatGateway, WsAuthService],
   exports: [ChatGateway],
 })
