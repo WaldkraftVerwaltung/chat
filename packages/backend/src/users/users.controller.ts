@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Body, UseGuards, Param } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -13,6 +13,12 @@ export class UsersController {
   getMe(@CurrentUser() user: User) {
     const { passwordHash, twoFactorSecret, ...profile } = user;
     return profile;
+  }
+
+  @Patch('me')
+  updateMe(@CurrentUser() user: User, @Body() body: any) {
+    const { passwordHash, twoFactorSecret, ...allowed } = body;
+    return this.usersService.updateProfile(user.id, allowed);
   }
 
   @Get()

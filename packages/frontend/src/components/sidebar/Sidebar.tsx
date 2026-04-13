@@ -1,9 +1,11 @@
 'use client';
+import { useState, useRef, useEffect } from 'react';
 import { ChannelList } from './ChannelList';
 import { useAuthStore } from '@/stores/auth.store';
 import { useSearchStore } from '@/stores/search.store';
 import { useNotificationsStore } from '@/stores/notifications.store';
 import { usePresenceStore } from '@/stores/presence.store';
+import { apiFetch } from '@/lib/api';
 
 function PresenceDot({ presence }: { presence: 'active' | 'away' | 'dnd' | undefined }) {
   if (!presence || presence === 'away') {
@@ -19,12 +21,64 @@ function PresenceDot({ presence }: { presence: 'active' | 'away' | 'dnd' | undef
   return <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-white" title="Aktiv" />;
 }
 
+const DND_OPTIONS = [
+  { label: '30 Min', minutes: 30 },
+  { label: '1 Std', minutes: 60 },
+  { label: '2 Std', minutes: 120 },
+  { label: 'Bis morgen', minutes: null },
+  { label: 'Aus', minutes: -1 },
+];
+
 export function Sidebar() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const unreadCount = useNotificationsStore((s) => s.unreadCount);
   const presenceMap = usePresenceStore((s) => s.presenceMap);
   const myPresence = user?.id ? presenceMap[user.id] : undefined;
+
+  const [dndEnabled, setDndEnabled] = useState(false);
+  const [dndOpen, setDndOpen] = useState(false);
+  const dndRef = useRef<HTMLDivElement>(null);
+
+  // Close DND dropdown when clicking outside
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (dndRef.current && !dndRef.current.contains(e.target as Node)) {
+        setDndOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  async function handleDndSelect(minutes: number | null) {
+    setDndOpen(false);
+    if (minutes === -1) {
+      // Turn off DND
+      setDndEnabled(false);
+      await apiFetch('/users/me', {
+        method: 'PATCH',
+        body: JSON.stringify({ dndEnabled: false, dndUntil: null }),
+      });
+    } else {
+      // Enable DND
+      let dndUntil: Date;
+      if (minutes === null) {
+        // Until tomorrow 9am
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(9, 0, 0, 0);
+        dndUntil = tomorrow;
+      } else {
+        dndUntil = new Date(Date.now() + minutes * 60 * 1000);
+      }
+      setDndEnabled(true);
+      await apiFetch('/users/me', {
+        method: 'PATCH',
+        body: JSON.stringify({ dndEnabled: true, dndUntil: dndUntil.toISOString() }),
+      });
+    }
+  }
 
   return (
     <aside className="flex h-screen w-64 flex-col border-r bg-gray-50">
@@ -68,7 +122,46 @@ export function Sidebar() {
           </div>
           <PresenceDot presence={myPresence} />
         </div>
-        <div className="flex-1 min-w-0"><p className="text-sm font-medium truncate">{user?.displayName}</p></div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium truncate flex items-center gap-1">
+            {user?.displayName}
+            {dndEnabled && (
+              <span className="text-[10px] text-red-500 font-bold" title="Nicht stören aktiv">z</span>
+            )}
+          </p>
+        </div>
+
+        {/* DND toggle */}
+        <div ref={dndRef} className="relative">
+          <button
+            onClick={() => setDndOpen((o) => !o)}
+            className={`rounded p-1 text-sm transition-colors ${dndEnabled ? 'text-red-500 hover:bg-red-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-200'}`}
+            title="Nicht stören"
+          >
+            {dndEnabled ? (
+              <span className="font-bold text-xs">z</span>
+            ) : (
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            )}
+          </button>
+          {dndOpen && (
+            <div className="absolute bottom-full right-0 mb-1 w-36 rounded-lg border bg-white shadow-lg py-1 z-10">
+              {DND_OPTIONS.map((opt) => (
+                <button
+                  key={opt.label}
+                  onClick={() => handleDndSelect(opt.minutes)}
+                  className="flex w-full items-center px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
+                >
+                  {opt.minutes === -1 && dndEnabled && <span className="mr-1 text-green-500">&#10003;</span>}
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         <button onClick={logout} className="text-xs text-gray-500 hover:text-gray-700" title="Abmelden">Logout</button>
       </div>
     </aside>

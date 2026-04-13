@@ -71,6 +71,12 @@ export class User {
   @Column({ name: 'two_factor_secret', nullable: true })
   twoFactorSecret: string | null;
 
+  @Column({ name: 'dnd_enabled', default: false })
+  dndEnabled: boolean;
+
+  @Column({ name: 'dnd_until', type: 'timestamptz', nullable: true })
+  dndUntil: Date | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

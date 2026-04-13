@@ -29,4 +29,9 @@ export class UsersService {
       order: { displayName: 'ASC' },
     });
   }
+
+  async updateProfile(userId: string, data: Partial<User>): Promise<User> {
+    await this.userRepo.update(userId, data);
+    return this.findById(userId) as Promise<User>;
+  }
 }
