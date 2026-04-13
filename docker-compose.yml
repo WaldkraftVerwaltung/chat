@@ -39,38 +39,28 @@ services:
     build:
       context: .
       dockerfile: packages/backend/Dockerfile
+    container_name: chat-backend
     restart: unless-stopped
     depends_on: [postgres, redis, meilisearch, minio]
     ports:
-      - '3001:3001'
+      - '3010:3001'
     env_file:
-      - .env.production
+      - .env
 
   frontend:
     build:
       context: .
       dockerfile: packages/frontend/Dockerfile
+    container_name: chat-frontend
     restart: unless-stopped
     depends_on: [backend]
     ports:
-      - '3000:3000'
+      - '3011:3000'
     env_file:
-      - .env.production
-
-  caddy:
-    image: caddy:2-alpine
-    restart: unless-stopped
-    ports:
-      - '80:80'
-      - '443:443'
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - caddy_data:/data
-    depends_on: [frontend, backend]
+      - .env
 
 volumes:
   postgres_data:
   redis_data:
   meili_data:
   minio_data:
-  caddy_data:
