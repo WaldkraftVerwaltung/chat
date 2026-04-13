@@ -13,6 +13,7 @@ import { ReactionsModule } from './reactions/reactions.module';
 import { FilesModule } from './files/files.module';
 import { EmojiModule } from './emoji/emoji.module';
 import { SearchModule } from './search/search.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { SearchModule } from './search/search.module';
     FilesModule,
     EmojiModule,
     SearchModule,
+    NotificationsModule,
   ],
 })
 export class AppModule {}
