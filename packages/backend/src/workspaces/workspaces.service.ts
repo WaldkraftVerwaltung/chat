@@ -13,6 +13,15 @@ export class WorkspacesService {
     return this.workspaceRepo.findOne({ where: { slug } });
   }
 
+  async findById(id: string): Promise<Workspace | null> {
+    return this.workspaceRepo.findOne({ where: { id } });
+  }
+
+  async update(id: string, data: Partial<Workspace>): Promise<Workspace> {
+    await this.workspaceRepo.update(id, data);
+    return this.findById(id) as Promise<Workspace>;
+  }
+
   async ensureDefault(): Promise<Workspace> {
     const DEFAULT_ID = '00000000-0000-0000-0000-000000000001';
     let ws = await this.workspaceRepo.findOne({ where: { id: DEFAULT_ID } });
