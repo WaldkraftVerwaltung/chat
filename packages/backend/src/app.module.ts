@@ -16,6 +16,7 @@ import { SearchModule } from './search/search.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PresenceModule } from './presence/presence.module';
 import { UserGroupsModule } from './user-groups/user-groups.module';
+import { SavedItemsModule } from './saved-items/saved-items.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { UserGroupsModule } from './user-groups/user-groups.module';
     NotificationsModule,
     PresenceModule,
     UserGroupsModule,
+    SavedItemsModule,
   ],
 })
 export class AppModule {}
