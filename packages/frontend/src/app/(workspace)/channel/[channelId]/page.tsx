@@ -10,6 +10,7 @@ import { ChannelDetailsPanel } from '@/components/channel/ChannelDetailsPanel';
 import { useChannelsStore } from '@/stores/channels.store';
 import { useChannelSocket } from '@/hooks/useSocket';
 import { useThreadsStore } from '@/stores/threads.store';
+import { apiFetch } from '@/lib/api';
 
 export default function ChannelPage() {
   const params = useParams();
@@ -18,20 +19,38 @@ export default function ChannelPage() {
   const channel = channels.find((c) => c.id === channelId);
   const activeThreadId = useThreadsStore((s) => s.activeThreadId);
   const [showDetails, setShowDetails] = useState(false);
+  const [detailsTab, setDetailsTab] = useState<'about' | 'members'>('about');
+  const [memberCount, setMemberCount] = useState<number | undefined>(undefined);
 
   useChannelSocket(channelId);
   useEffect(() => { setActiveChannel(channelId); }, [channelId, setActiveChannel]);
 
+  useEffect(() => {
+    apiFetch<any[]>(`/channels/${channelId}/members`)
+      .then((members) => setMemberCount(members.length))
+      .catch(() => {});
+  }, [channelId]);
+
   if (!channel) return <div className="flex flex-1 items-center justify-center text-gray-400">Channel wird geladen...</div>;
+
+  function openDetails(tab: 'about' | 'members' = 'about') {
+    setDetailsTab(tab);
+    setShowDetails(true);
+  }
 
   return (
     <div className="flex flex-1 overflow-hidden">
       <div className="flex flex-1 flex-col">
         <ChannelHeader
+          channelId={channelId}
           name={channel.name}
           topic={channel.topic}
           type={channel.type}
-          onToggleDetails={() => setShowDetails((v) => !v)}
+          memberCount={memberCount}
+          onToggleDetails={() => {
+            if (showDetails) { setShowDetails(false); } else { openDetails('about'); }
+          }}
+          onToggleMembers={() => openDetails('members')}
         />
         <MessageList channelId={channelId} />
         <TypingIndicator channelId={channelId} />
@@ -45,6 +64,7 @@ export default function ChannelPage() {
           topic={channel.topic ?? null}
           description={(channel as any).description ?? null}
           type={channel.type}
+          initialTab={detailsTab}
           onClose={() => setShowDetails(false)}
         />
       )}

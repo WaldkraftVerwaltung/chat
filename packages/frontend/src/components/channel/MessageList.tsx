@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useMessagesStore } from '@/stores/messages.store';
 import { MessageItem } from './MessageItem';
 
@@ -10,27 +10,89 @@ export function MessageList({ channelId }: { channelId: string }) {
   const fetchMessages = useMessagesStore((s) => s.fetchMessages);
   const loading = useMessagesStore((s) => s.loading);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
+  const [unreadWhileScrolled, setUnreadWhileScrolled] = useState(0);
+  const prevLengthRef = useRef(messages.length);
+  const isAtBottomRef = useRef(true);
 
   useEffect(() => { fetchMessages(channelId); }, [channelId, fetchMessages]);
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages.length]);
+
+  // Scroll to bottom on initial load or when new messages arrive while at bottom
+  useEffect(() => {
+    const newCount = messages.length;
+    const wasAtBottom = isAtBottomRef.current;
+
+    if (newCount > prevLengthRef.current && !wasAtBottom) {
+      // New messages arrived while user scrolled up
+      setUnreadWhileScrolled((c) => c + (newCount - prevLengthRef.current));
+    } else if (wasAtBottom) {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+      setUnreadWhileScrolled(0);
+    }
+    prevLengthRef.current = newCount;
+  }, [messages.length]);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    const atBottom = distanceFromBottom < 80;
+    isAtBottomRef.current = atBottom;
+    setShowScrollBtn(!atBottom);
+    if (atBottom) setUnreadWhileScrolled(0);
+  }, []);
+
+  function scrollToBottom() {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setUnreadWhileScrolled(0);
+  }
 
   if (loading && messages.length === 0) return <div className="flex-1 flex items-center justify-center text-gray-400">Laden...</div>;
 
-  return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="py-4">
-        {messages.map((msg, i) => {
-          const prev = i > 0 ? messages[i - 1] : null;
-          const isGrouped = prev
-            && !prev.isDeleted
-            && !msg.isDeleted
-            && prev.user?.id === msg.user?.id
-            && (new Date(msg.createdAt).getTime() - new Date(prev.createdAt).getTime()) < GROUP_THRESHOLD_MS;
-
-          return <MessageItem key={msg.id} message={msg} channelId={channelId} isGrouped={!!isGrouped} />;
-        })}
-        <div ref={bottomRef} />
+  if (!loading && messages.length === 0) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
+        <div className="text-4xl mb-3">👋</div>
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">Willkommen in diesem Channel!</h2>
+        <p className="text-sm text-gray-500">Dies ist der Anfang der Konversation. Schreibe die erste Nachricht.</p>
       </div>
+    );
+  }
+
+  return (
+    <div className="relative flex-1 overflow-hidden">
+      <div ref={scrollRef} className="h-full overflow-y-auto" onScroll={handleScroll}>
+        <div className="py-4">
+          {messages.map((msg, i) => {
+            const prev = i > 0 ? messages[i - 1] : null;
+            const isGrouped = prev
+              && !prev.isDeleted
+              && !msg.isDeleted
+              && prev.user?.id === msg.user?.id
+              && (new Date(msg.createdAt).getTime() - new Date(prev.createdAt).getTime()) < GROUP_THRESHOLD_MS;
+
+            return <MessageItem key={msg.id} message={msg} channelId={channelId} isGrouped={!!isGrouped} />;
+          })}
+          <div ref={bottomRef} />
+        </div>
+      </div>
+
+      {showScrollBtn && (
+        <button
+          onClick={scrollToBottom}
+          className="absolute bottom-4 right-4 flex items-center gap-1.5 rounded-full bg-indigo-600 px-3 py-2 text-xs font-medium text-white shadow-lg hover:bg-indigo-700 transition-colors"
+        >
+          {unreadWhileScrolled > 0 && (
+            <span className="bg-white text-indigo-600 rounded-full px-1.5 py-0.5 text-xs font-bold leading-none">
+              {unreadWhileScrolled}
+            </span>
+          )}
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 }

@@ -8,13 +8,14 @@ interface ChannelDetailsPanelProps {
   topic: string | null;
   description: string | null;
   type: 'public' | 'private';
+  initialTab?: 'about' | 'members';
   onClose: () => void;
 }
 
-export function ChannelDetailsPanel({ channelId, channelName, topic, description, type, onClose }: ChannelDetailsPanelProps) {
+export function ChannelDetailsPanel({ channelId, channelName, topic, description, type, initialTab, onClose }: ChannelDetailsPanelProps) {
   const [members, setMembers] = useState<any[]>([]);
   const [pinnedMessages, setPinnedMessages] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'about' | 'members' | 'pins'>('about');
+  const [activeTab, setActiveTab] = useState<'about' | 'members' | 'pins'>(initialTab || 'about');
 
   useEffect(() => {
     apiFetch<any[]>(`/channels/${channelId}/members`).then(setMembers).catch(() => {});

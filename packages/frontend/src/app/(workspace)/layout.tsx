@@ -9,12 +9,15 @@ import { SearchModal } from '@/components/search/SearchModal';
 import { useNotificationsStore } from '@/stores/notifications.store';
 import { useUnreadStore } from '@/stores/unread.store';
 import { useGlobalSocket } from '@/hooks/useSocket';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { ToastProvider } from '@/components/ui/Toast';
 
 export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { isAuthenticated, setUser } = useAuthStore();
 
   useGlobalSocket();
+  useKeyboardShortcuts();
 
   useEffect(() => {
     if (!isAuthenticated) { router.replace('/login'); return; }
@@ -36,12 +39,12 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
   if (!isAuthenticated) return null;
 
   return (
-    <>
+    <ToastProvider>
       <SearchModal />
       <div className="flex h-screen">
         <Sidebar />
         <main className="flex-1 flex flex-col overflow-hidden">{children}</main>
       </div>
-    </>
+    </ToastProvider>
   );
 }
