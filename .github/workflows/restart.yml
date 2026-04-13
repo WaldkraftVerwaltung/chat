@@ -1,0 +1,28 @@
+name: Restart Chat
+
+on:
+  workflow_dispatch:
+
+jobs:
+  restart:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Restart containers
+        uses: appleboy/ssh-action@v1
+        with:
+          host: 91.107.233.103
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/chat
+            export COMPOSE_PROJECT_NAME=chat
+            docker compose down --remove-orphans 2>/dev/null || true
+            docker compose up -d
+            ufw allow 3010/tcp 2>/dev/null || true
+            ufw allow 3011/tcp 2>/dev/null || true
+            sleep 20
+            docker compose ps
+            curl -s -o /dev/null -w "Backend: HTTP %{http_code}\n" http://localhost:3010/api || echo "Backend DOWN"
+            curl -s -o /dev/null -w "Frontend: HTTP %{http_code}\n" http://localhost:3011 || echo "Frontend DOWN"
+            docker compose logs backend --tail 10
+            docker compose logs frontend --tail 10
