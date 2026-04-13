@@ -1,0 +1,29 @@
+name: Fix Ports
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fix stuck ports and restart
+        uses: appleboy/ssh-action@v1
+        with:
+          host: 91.107.233.103
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          command_timeout: 15m
+          script: |
+            fuser -k 3010/tcp 2>/dev/null || true
+            fuser -k 3011/tcp 2>/dev/null || true
+            sleep 2
+            cd /opt/chat
+            docker compose kill 2>/dev/null || true
+            docker compose rm -f 2>/dev/null || true
+            ss -tlnp | grep -E "3010|3011" && echo "STILL IN USE" || echo "Ports free"
+            docker compose up -d 2>&1
+            sleep 30
+            docker compose ps -a
+            curl -s -o /dev/null -w "Backend: HTTP %{http_code}\n" http://localhost:3010/api/auth/login
+            curl -s http://localhost:3011 2>&1 | head -3
