@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { ChannelList } from './ChannelList';
+import { DmList } from './DmList';
 import { useAuthStore } from '@/stores/auth.store';
 import { useSearchStore } from '@/stores/search.store';
 import { useNotificationsStore } from '@/stores/notifications.store';
@@ -118,6 +119,7 @@ export function Sidebar() {
       </div>
       <nav className="flex-1 overflow-y-auto py-2">
         <ChannelList />
+        <DmList />
         {user?.role && ['primary_owner', 'owner', 'admin'].includes(user.role) && (
           <div className="px-3 pt-2 pb-1">
             <Link href="/admin" className="flex items-center gap-2 rounded-md px-2 py-1.5 text-xs text-gray-500 hover:bg-gray-200 hover:text-gray-700 transition-colors">
