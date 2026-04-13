@@ -1,0 +1,31 @@
+name: Health Check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check services
+        uses: appleboy/ssh-action@v1
+        with:
+          host: 91.107.233.103
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/chat && export COMPOSE_PROJECT_NAME=chat
+            echo "=== Containers ==="
+            docker compose ps
+            echo "=== Backend ==="
+            curl -s -o /dev/null -w "HTTP %{http_code}\n" http://localhost:3010/api || echo "DOWN"
+            echo "=== Frontend ==="
+            curl -s -o /dev/null -w "HTTP %{http_code}\n" http://localhost:3011 || echo "DOWN"
+            echo "=== Backend Logs ==="
+            docker compose logs backend --tail 15
+            echo "=== Frontend Logs ==="
+            docker compose logs frontend --tail 15
+            echo "=== Firewall ==="
+            ufw status | grep -E "3010|3011" || echo "no rules"
+            echo "=== Ports ==="
+            ss -tlnp | grep -E "3010|3011"
