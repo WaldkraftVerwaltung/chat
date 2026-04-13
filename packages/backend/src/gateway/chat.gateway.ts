@@ -6,6 +6,9 @@ import { Server, Socket } from 'socket.io';
 import { WsAuthService } from './ws-auth.guard';
 import { MessagesService } from '../messages/messages.service';
 import { ReactionsService } from '../reactions/reactions.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { MentionDetectorService } from '../notifications/mention-detector.service';
+import { ChannelsService } from '../channels/channels.service';
 
 @WebSocketGateway({ cors: { origin: '*', credentials: true }, namespace: '/' })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -18,6 +21,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private wsAuth: WsAuthService,
     private messagesService: MessagesService,
     private reactionsService: ReactionsService,
+    private notificationsService: NotificationsService,
+    private mentionDetector: MentionDetectorService,
+    private channelsService: ChannelsService,
   ) {}
 
   async handleConnection(socket: Socket) {
@@ -58,6 +64,46 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.to(`channel:${data.channelId}`).emit('message:new', message);
     if (data.threadParentId) {
       this.server.to(`channel:${data.channelId}`).emit('thread:reply', { parentId: data.threadParentId, message });
+    }
+
+    // Mention detection and notification triggers
+    const members = await this.channelsService.getMembers(data.channelId);
+    const userMap = new Map(members.map((m) => [m.userId, m.user?.displayName || '']));
+    const mentions = this.mentionDetector.detect(data.content, userMap);
+
+    for (const mention of mentions) {
+      if (mention.type === 'user' && mention.userId && mention.userId !== user.id) {
+        const notif = await this.notificationsService.create({
+          userId: mention.userId, type: 'mention', messageId: message.id,
+          channelId: data.channelId, actorId: user.id,
+          summary: `${user.displayName} hat dich in #${data.channelId} erwaehnt`,
+        });
+        this.server.to(`user:${mention.userId}`).emit('notification', notif);
+      }
+      if (mention.type === 'channel' || mention.type === 'here') {
+        for (const member of members) {
+          if (member.userId === user.id) continue;
+          const notif = await this.notificationsService.create({
+            userId: member.userId, type: 'mention', messageId: message.id,
+            channelId: data.channelId, actorId: user.id,
+            summary: `${user.displayName} hat @${mention.type} in einem Channel verwendet`,
+          });
+          this.server.to(`user:${member.userId}`).emit('notification', notif);
+        }
+      }
+    }
+
+    // Thread reply notification
+    if (data.threadParentId) {
+      const parent = await this.messagesService.findById(data.threadParentId);
+      if (parent.userId !== user.id) {
+        const notif = await this.notificationsService.create({
+          userId: parent.userId, type: 'thread_reply', messageId: message.id,
+          channelId: data.channelId, actorId: user.id,
+          summary: `${user.displayName} hat auf deinen Thread geantwortet`,
+        });
+        this.server.to(`user:${parent.userId}`).emit('notification', notif);
+      }
     }
   }
 

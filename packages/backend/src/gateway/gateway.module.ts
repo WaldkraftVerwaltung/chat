@@ -5,9 +5,11 @@ import { WsAuthService } from './ws-auth.guard';
 import { UsersModule } from '../users/users.module';
 import { MessagesModule } from '../messages/messages.module';
 import { ReactionsModule } from '../reactions/reactions.module';
+import { NotificationsModule } from '../notifications/notifications.module';
+import { ChannelsModule } from '../channels/channels.module';
 
 @Module({
-  imports: [JwtModule.register({}), UsersModule, MessagesModule, ReactionsModule],
+  imports: [JwtModule.register({}), UsersModule, MessagesModule, ReactionsModule, NotificationsModule, ChannelsModule],
   providers: [ChatGateway, WsAuthService],
   exports: [ChatGateway],
 })
