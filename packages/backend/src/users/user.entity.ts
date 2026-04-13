@@ -26,13 +26,13 @@ export class User {
   @Column({ name: 'display_name', length: 80 })
   displayName: string;
 
-  @Column({ name: 'full_name', length: 200, nullable: true })
+  @Column({ name: 'full_name', type: 'varchar', length: 200, nullable: true })
   fullName: string | null;
 
-  @Column({ length: 200, nullable: true })
+  @Column({ type: 'varchar', length: 200, nullable: true })
   title: string | null;
 
-  @Column({ length: 50, nullable: true })
+  @Column({ type: 'varchar', length: 50, nullable: true })
   phone: string | null;
 
   @Column({ length: 100, default: 'Europe/Berlin' })
@@ -41,10 +41,10 @@ export class User {
   @Column({ name: 'avatar_url', type: 'varchar', nullable: true })
   avatarUrl: string | null;
 
-  @Column({ name: 'status_text', length: 100, nullable: true })
+  @Column({ name: 'status_text', type: 'varchar', length: 100, nullable: true })
   statusText: string | null;
 
-  @Column({ name: 'status_emoji', length: 50, nullable: true })
+  @Column({ name: 'status_emoji', type: 'varchar', length: 50, nullable: true })
   statusEmoji: string | null;
 
   @Column({ name: 'status_expiration', type: 'timestamptz', nullable: true })

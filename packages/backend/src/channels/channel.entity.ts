@@ -24,10 +24,10 @@ export class Channel {
   @Column({ type: 'enum', enum: ChannelType, default: ChannelType.PUBLIC })
   type: ChannelType;
 
-  @Column({ length: 250, nullable: true })
+  @Column({ type: 'varchar', length: 250, nullable: true })
   topic: string | null;
 
-  @Column({ length: 250, nullable: true })
+  @Column({ type: 'varchar', length: 250, nullable: true })
   description: string | null;
 
   @Column({ name: 'created_by' })
