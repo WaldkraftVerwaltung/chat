@@ -56,7 +56,7 @@ export class SearchService implements OnModuleInit {
       hasLink: message.content.includes('http://') || message.content.includes('https://'),
       createdAt: message.createdAt.getTime(),
     };
-    await this.messagesIndex.addDocuments([doc]);
+    await this.messagesIndex.addDocuments([doc as any]);
   }
 
   async deleteMessage(messageId: string): Promise<void> {
