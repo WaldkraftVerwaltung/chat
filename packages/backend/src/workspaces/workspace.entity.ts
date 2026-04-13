@@ -13,10 +13,10 @@ export class Workspace {
   @Column({ length: 100, unique: true })
   slug: string;
 
-  @Column({ name: 'icon_url', nullable: true })
+  @Column({ name: 'icon_url', type: 'varchar', nullable: true })
   iconUrl: string | null;
 
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ type: 'jsonb', default: '{}' })
   settings: Record<string, any>;
 
   @CreateDateColumn({ name: 'created_at' })
