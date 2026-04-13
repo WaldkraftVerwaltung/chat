@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { MessagesService } from './messages.service';
+import { ScheduledMessagesService } from './scheduled-messages.service';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
 import { JwtAuthGuard } from '../auth/auth.guard';
@@ -27,7 +28,30 @@ export class MessagesController {
 @Controller('messages')
 @UseGuards(JwtAuthGuard)
 export class MessageActionsController {
-  constructor(private messagesService: MessagesService) {}
+  constructor(
+    private messagesService: MessagesService,
+    private scheduledMessagesService: ScheduledMessagesService,
+  ) {}
+
+  @Post('schedule')
+  scheduleMessage(
+    @Body() body: { channelId: string; content: string; scheduledAt: string },
+    @CurrentUser() user: User,
+  ) {
+    return this.scheduledMessagesService.schedule(
+      body.channelId, user.id, body.content, new Date(body.scheduledAt),
+    );
+  }
+
+  @Get('scheduled')
+  getScheduled(@CurrentUser() user: User) {
+    return this.scheduledMessagesService.getScheduled(user.id);
+  }
+
+  @Delete('scheduled/:id')
+  cancelScheduled(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.scheduledMessagesService.cancelScheduled(id, user.id);
+  }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateMessageDto, @CurrentUser() user: User) {

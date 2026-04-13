@@ -59,6 +59,9 @@ export class Message {
   @Column({ name: 'system_message_type', nullable: true })
   systemMessageType: string | null;
 
+  @Column({ name: 'scheduled_at', type: 'timestamptz', nullable: true })
+  scheduledAt: Date | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
