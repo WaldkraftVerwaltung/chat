@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { MessageList } from '@/components/channel/MessageList';
 import { MessageInput } from '@/components/channel/MessageInput';
+import { TypingIndicator } from '@/components/channel/TypingIndicator';
 import { useDmsStore } from '@/stores/dms.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { useChannelSocket } from '@/hooks/useSocket';
@@ -36,6 +37,7 @@ export default function DmPage() {
         <h1 className="text-base font-semibold text-gray-900">{dmName}</h1>
       </header>
       <MessageList channelId={dmId} />
+      <TypingIndicator channelId={dmId} />
       <MessageInput channelId={dmId} />
     </div>
   );

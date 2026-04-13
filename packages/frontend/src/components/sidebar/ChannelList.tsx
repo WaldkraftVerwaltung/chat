@@ -1,14 +1,16 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useChannelsStore } from '@/stores/channels.store';
 import { useUnreadStore } from '@/stores/unread.store';
 import { SidebarSection } from './SidebarSection';
 import { getSocket } from '@/lib/socket';
+import { CreateChannelDialog } from '@/components/channel/CreateChannelDialog';
 
 export function ChannelList() {
   const { channels, activeChannelId, fetchChannels, starredChannelIds, toggleStar, setActiveChannel } = useChannelsStore();
   const unreadByChannel = useUnreadStore((s) => s.unreadByChannel);
+  const [showCreateChannel, setShowCreateChannel] = useState(false);
   useEffect(() => { fetchChannels(); }, [fetchChannels]);
 
   const starredChannels = channels.filter((ch) => starredChannelIds.includes(ch.id));
@@ -60,9 +62,34 @@ export function ChannelList() {
           {starredChannels.map(renderChannel)}
         </SidebarSection>
       )}
-      <SidebarSection title="Channels" badge={totalRegularUnread}>
-        {regularChannels.map(renderChannel)}
-      </SidebarSection>
+      <div className="mb-1">
+        <div className="flex items-center px-3 py-1">
+          <button
+            onClick={() => {
+              const el = document.getElementById('channels-section-toggle');
+              el?.click();
+            }}
+            className="flex flex-1 items-center gap-1 text-xs font-semibold uppercase text-gray-500 hover:text-gray-700"
+          >
+            <span className="text-[10px]">&#9654;</span>
+            <span className="flex-1 text-left">Channels</span>
+            {totalRegularUnread > 0 && (
+              <span className="rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] text-white font-bold">{totalRegularUnread}</span>
+            )}
+          </button>
+          <button
+            onClick={() => setShowCreateChannel(true)}
+            className="ml-1 text-gray-400 hover:text-gray-600 text-sm leading-none px-1"
+            title="Channel erstellen"
+          >
+            +
+          </button>
+        </div>
+        <div className="mt-0.5">
+          {regularChannels.map(renderChannel)}
+        </div>
+      </div>
+      <CreateChannelDialog isOpen={showCreateChannel} onClose={() => setShowCreateChannel(false)} />
     </div>
   );
 }

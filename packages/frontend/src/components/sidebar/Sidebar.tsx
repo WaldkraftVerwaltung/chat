@@ -9,6 +9,7 @@ import { useNotificationsStore } from '@/stores/notifications.store';
 import { usePresenceStore } from '@/stores/presence.store';
 import { apiFetch } from '@/lib/api';
 import { Avatar } from '@/components/ui/Avatar';
+import { StatusDialog } from './StatusDialog';
 
 function PresenceDot({ presence }: { presence: 'active' | 'away' | 'dnd' | undefined }) {
   if (!presence || presence === 'away') {
@@ -41,6 +42,7 @@ export function Sidebar() {
 
   const [dndEnabled, setDndEnabled] = useState(false);
   const [dndOpen, setDndOpen] = useState(false);
+  const [showStatusDialog, setShowStatusDialog] = useState(false);
   const dndRef = useRef<HTMLDivElement>(null);
 
   // Close DND dropdown when clicking outside
@@ -132,18 +134,27 @@ export function Sidebar() {
           </div>
         )}
       </nav>
+      <StatusDialog isOpen={showStatusDialog} onClose={() => setShowStatusDialog(false)} />
       <div className="border-t px-4 py-3 flex items-center gap-2">
         <div className="relative flex-shrink-0">
           <Avatar name={user?.displayName || '?'} avatarUrl={(user as any)?.avatarUrl} size="sm" presence={myPresence} />
         </div>
-        <div className="flex-1 min-w-0">
+        <button
+          onClick={() => setShowStatusDialog(true)}
+          className="flex-1 min-w-0 text-left hover:opacity-80 transition-opacity"
+          title="Status setzen"
+        >
           <p className="text-sm font-medium truncate flex items-center gap-1">
+            {(user as any)?.statusEmoji && <span>{(user as any).statusEmoji}</span>}
             {user?.displayName}
             {dndEnabled && (
               <span className="text-[10px] text-red-500 font-bold" title="Nicht stören aktiv">z</span>
             )}
           </p>
-        </div>
+          {(user as any)?.statusText && (
+            <p className="text-xs text-gray-400 truncate">{(user as any).statusText}</p>
+          )}
+        </button>
 
         {/* DND toggle */}
         <div ref={dndRef} className="relative">
