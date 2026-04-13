@@ -1,0 +1,23 @@
+name: Debug Frontend
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug
+        uses: appleboy/ssh-action@v1
+        with:
+          host: 91.107.233.103
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/chat && export COMPOSE_PROJECT_NAME=chat
+            docker compose ps frontend
+            docker compose logs frontend --tail 30
+            curl -s http://localhost:3011 2>&1 | head -50
+            docker compose exec -T frontend ls .next/ 2>&1
+            docker compose exec -T frontend printenv PORT 2>&1
+            docker compose exec -T frontend printenv NEXT_PUBLIC_API_URL 2>&1
