@@ -73,4 +73,23 @@ export class ChannelsService {
     channel.isArchived = true;
     return this.channelRepo.save(channel);
   }
+
+  async updateLastRead(channelId: string, userId: string): Promise<void> {
+    await this.memberRepo.update({ channelId, userId }, { lastReadAt: new Date() });
+  }
+
+  async getUnreadCounts(userId: string): Promise<{ channelId: string; unreadCount: number }[]> {
+    const results = await this.memberRepo.query(`
+      SELECT cm.channel_id as "channelId",
+        COUNT(m.id)::int as "unreadCount"
+      FROM channel_members cm
+      LEFT JOIN messages m ON m.channel_id = cm.channel_id
+        AND m.is_deleted = false
+        AND m.created_at > COALESCE(cm.last_read_at, '1970-01-01')
+      WHERE cm.user_id = $1
+      GROUP BY cm.channel_id
+      HAVING COUNT(m.id) > 0
+    `, [userId]);
+    return results;
+  }
 }

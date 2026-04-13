@@ -134,6 +134,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket.to(`channel:${data.channelId}`).emit('typing:stop', { channelId: data.channelId, userId: user.id });
   }
 
+  @SubscribeMessage('mark:read')
+  async handleMarkRead(@ConnectedSocket() socket: Socket, @MessageBody() data: { channelId: string }) {
+    const user = socket.data.user;
+    if (!user) return;
+    await this.channelsService.updateLastRead(data.channelId, user.id);
+    return { status: 'ok' };
+  }
+
   emitToUser(userId: string, event: string, data: any) {
     this.server.to(`user:${userId}`).emit(event, data);
   }

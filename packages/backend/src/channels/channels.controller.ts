@@ -21,6 +21,11 @@ export class ChannelsController {
     return this.channelsService.findAll(user.workspaceId, user.id);
   }
 
+  @Get('unread-counts')
+  getUnreadCounts(@CurrentUser() user: User) {
+    return this.channelsService.getUnreadCounts(user.id);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.channelsService.findById(id);
