@@ -1,0 +1,36 @@
+name: Open Chat Ports
+
+on:
+  workflow_dispatch:
+
+jobs:
+  open-ports:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Open firewall ports
+        uses: appleboy/ssh-action@v1
+        with:
+          host: 91.107.233.103
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Check if ufw is active
+            if command -v ufw &> /dev/null && ufw status | grep -q "active"; then
+              ufw allow 3010/tcp comment "Chat Backend"
+              ufw allow 3011/tcp comment "Chat Frontend"
+              ufw reload
+              echo "UFW: Ports 3010 and 3011 opened"
+            fi
+
+            # Check if iptables is being used
+            if command -v iptables &> /dev/null; then
+              iptables -I INPUT -p tcp --dport 3010 -j ACCEPT 2>/dev/null || true
+              iptables -I INPUT -p tcp --dport 3011 -j ACCEPT 2>/dev/null || true
+              echo "iptables: Ports 3010 and 3011 opened"
+            fi
+
+            # Verify ports are listening
+            ss -tlnp | grep -E "3010|3011" || echo "Ports not yet listening"
+
+            # Check docker containers
+            cd /opt/chat && docker compose ps
