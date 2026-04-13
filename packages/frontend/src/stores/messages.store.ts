@@ -7,6 +7,7 @@ interface Message {
   threadParentId: string | null; createdAt: string;
   user?: { id: string; displayName: string; avatarUrl: string | null };
   reactions?: { emoji: string; count: number; userIds: string[] }[];
+  files?: { id: string; originalFilename: string; mimeType: string; sizeBytes: number; thumbnailKey: string | null }[];
 }
 
 interface MessagesState {

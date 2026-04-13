@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { ReactionBar } from './ReactionBar';
+import { FilePreview } from './FilePreview';
 import { useThreadsStore } from '@/stores/threads.store';
 
 interface MessageItemProps {
@@ -9,6 +10,7 @@ interface MessageItemProps {
     user?: { id: string; displayName: string; avatarUrl: string | null };
     reactions?: { emoji: string; count: number; userIds: string[] }[];
     replyCount?: number;
+    files?: { id: string; originalFilename: string; mimeType: string; sizeBytes: number; thumbnailKey: string | null }[];
   };
   channelId: string;
 }
@@ -33,6 +35,11 @@ export function MessageItem({ message, channelId }: MessageItemProps) {
           {message.isEdited && <span className="text-xs text-gray-400">(bearbeitet)</span>}
         </div>
         <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">{message.content}</p>
+        {message.files && message.files.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-1">
+            {message.files.map((file) => <FilePreview key={file.id} file={file} />)}
+          </div>
+        )}
         <ReactionBar
           messageId={message.id}
           channelId={channelId}
