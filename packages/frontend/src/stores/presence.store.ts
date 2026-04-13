@@ -3,7 +3,7 @@ import { create } from 'zustand';
 interface PresenceState {
   presenceMap: Record<string, 'active' | 'away' | 'dnd'>;
   setPresence: (userId: string, presence: 'active' | 'away' | 'dnd') => void;
-  setBulkPresence: (map: Record<string, string>) => void;
+  setBulkPresence: (map: Record<string, 'active' | 'away' | 'dnd'>) => void;
 }
 
 export const usePresenceStore = create<PresenceState>((set) => ({
