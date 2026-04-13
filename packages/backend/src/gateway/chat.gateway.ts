@@ -36,7 +36,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!user) { socket.disconnect(); return; }
     socket.data.user = user;
     if (!this.userSockets.has(user.id)) this.userSockets.set(user.id, new Set());
-    this.userSockets.get(user.id).add(socket.id);
+    this.userSockets.get(user.id)!.add(socket.id);
     socket.join(`user:${user.id}`);
     await this.presenceService.setPresence(user.id, Presence.ACTIVE);
     this.server.emit('presence:update', { userId: user.id, presence: Presence.ACTIVE });

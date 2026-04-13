@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { MeiliSearch, Index } from 'meilisearch';
+import { Meilisearch as MeiliSearch, Index } from 'meilisearch';
 
 interface IndexedMessage {
   id: string;

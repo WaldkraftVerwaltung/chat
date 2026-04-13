@@ -29,7 +29,7 @@ export class ScheduledMessagesService {
   @Cron(CronExpression.EVERY_MINUTE)
   async sendDueMessages(): Promise<Message[]> {
     const due = await this.messageRepo.find({
-      where: { scheduledAt: LessThanOrEqual(new Date()), isDeleted: true, scheduledAt: Not(IsNull()) },
+      where: { scheduledAt: LessThanOrEqual(new Date()), isDeleted: true },
     });
     for (const msg of due) {
       msg.isDeleted = false;

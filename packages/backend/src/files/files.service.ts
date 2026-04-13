@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FileAttachment } from './file-attachment.entity';
 import { S3Service } from './s3.service';
-import * as sharp from 'sharp';
+import sharp from 'sharp';
 import { v4 as uuid } from 'uuid';
 import * as path from 'path';
 

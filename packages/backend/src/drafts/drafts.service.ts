@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { Draft } from './draft.entity';
 
 @Injectable()
@@ -13,9 +13,10 @@ export class DraftsService {
     // Find existing draft for this context
     let draft: Draft | null = null;
     if (data.channelId) {
-      draft = await this.draftRepo.findOne({
-        where: { userId, channelId: data.channelId, threadParentId: data.threadParentId || null },
-      });
+      const where: any = { userId, channelId: data.channelId };
+      if (data.threadParentId) where.threadParentId = data.threadParentId;
+      else where.threadParentId = IsNull();
+      draft = await this.draftRepo.findOne({ where });
     } else if (data.dmConversationId) {
       draft = await this.draftRepo.findOne({
         where: { userId, dmConversationId: data.dmConversationId },
@@ -46,6 +47,9 @@ export class DraftsService {
   }
 
   async deleteByChannel(userId: string, channelId: string, threadParentId?: string): Promise<void> {
-    await this.draftRepo.delete({ userId, channelId, threadParentId: threadParentId || null });
+    const where: any = { userId, channelId };
+    if (threadParentId) where.threadParentId = threadParentId;
+    else where.threadParentId = IsNull();
+    await this.draftRepo.delete(where);
   }
 }
