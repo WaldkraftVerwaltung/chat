@@ -1,7 +1,32 @@
 'use client';
 import { useEffect, useRef, useState, useCallback } from 'react';
+import React from 'react';
 import { useMessagesStore } from '@/stores/messages.store';
 import { MessageItem } from './MessageItem';
+
+function DateSeparator({ date }: { date: string }) {
+  const d = new Date(date);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  let label: string;
+  if (d.toDateString() === today.toDateString()) {
+    label = 'Heute';
+  } else if (d.toDateString() === yesterday.toDateString()) {
+    label = 'Gestern';
+  } else {
+    label = d.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+
+  return (
+    <div className="flex items-center gap-3 py-4 px-5">
+      <div className="flex-1 h-px bg-gray-200" />
+      <span className="text-xs font-medium text-gray-500 whitespace-nowrap">{label}</span>
+      <div className="flex-1 h-px bg-gray-200" />
+    </div>
+  );
+}
 
 const GROUP_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -66,13 +91,20 @@ export function MessageList({ channelId }: { channelId: string }) {
         <div className="py-4">
           {messages.map((msg, i) => {
             const prev = i > 0 ? messages[i - 1] : null;
-            const isGrouped = prev
+            const showDateSep = !prev || new Date(msg.createdAt).toDateString() !== new Date(prev.createdAt).toDateString();
+            const isGrouped = !showDateSep
+              && prev
               && !prev.isDeleted
               && !msg.isDeleted
               && prev.user?.id === msg.user?.id
               && (new Date(msg.createdAt).getTime() - new Date(prev.createdAt).getTime()) < GROUP_THRESHOLD_MS;
 
-            return <MessageItem key={msg.id} message={msg} channelId={channelId} isGrouped={!!isGrouped} />;
+            return (
+              <React.Fragment key={msg.id}>
+                {showDateSep && <DateSeparator date={msg.createdAt} />}
+                <MessageItem message={msg} channelId={channelId} isGrouped={!!isGrouped} />
+              </React.Fragment>
+            );
           })}
           <div ref={bottomRef} />
         </div>

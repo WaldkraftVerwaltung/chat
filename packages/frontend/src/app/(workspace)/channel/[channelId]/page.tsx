@@ -15,7 +15,7 @@ import { apiFetch } from '@/lib/api';
 export default function ChannelPage() {
   const params = useParams();
   const channelId = params.channelId as string;
-  const { channels, setActiveChannel } = useChannelsStore();
+  const { channels, setActiveChannel, starredChannelIds, toggleStar } = useChannelsStore();
   const channel = channels.find((c) => c.id === channelId);
   const activeThreadId = useThreadsStore((s) => s.activeThreadId);
   const [showDetails, setShowDetails] = useState(false);
@@ -30,6 +30,8 @@ export default function ChannelPage() {
       .then((members) => setMemberCount(members.length))
       .catch(() => {});
   }, [channelId]);
+
+  const isStarred = starredChannelIds.includes(channelId);
 
   if (!channel) return <div className="flex flex-1 items-center justify-center text-gray-400">Channel wird geladen...</div>;
 
@@ -47,6 +49,8 @@ export default function ChannelPage() {
           topic={channel.topic}
           type={channel.type}
           memberCount={memberCount}
+          isStarred={isStarred}
+          onToggleStar={() => toggleStar(channelId)}
           onToggleDetails={() => {
             if (showDetails) { setShowDetails(false); } else { openDetails('about'); }
           }}
