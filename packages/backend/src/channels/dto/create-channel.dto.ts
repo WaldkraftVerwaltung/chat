@@ -1,5 +1,5 @@
 import { IsString, IsEnum, IsOptional, MaxLength, MinLength, Matches } from 'class-validator';
-import { ChannelType } from '@chat/shared';
+import { ChannelType, PostingPermission } from '@chat/shared';
 
 export class CreateChannelDto {
   @IsString()
@@ -20,4 +20,8 @@ export class CreateChannelDto {
   @IsOptional()
   @MaxLength(250)
   topic?: string;
+
+  @IsEnum(PostingPermission)
+  @IsOptional()
+  postingPermission?: PostingPermission;
 }
