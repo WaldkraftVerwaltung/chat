@@ -36,6 +36,7 @@ export class MessagesService {
     const qb = this.messageRepo
       .createQueryBuilder('m')
       .leftJoinAndSelect('m.user', 'u')
+      .leftJoinAndSelect('m.files', 'f')
       .where('m.channel_id = :channelId', { channelId })
       .andWhere('m.thread_parent_id IS NULL')
       .andWhere('m.is_deleted = false')
@@ -46,7 +47,7 @@ export class MessagesService {
   }
 
   async findById(id: string): Promise<Message> {
-    const msg = await this.messageRepo.findOne({ where: { id }, relations: ['user'] });
+    const msg = await this.messageRepo.findOne({ where: { id }, relations: ['user', 'files'] });
     if (!msg) throw new NotFoundException('Message not found');
     return msg;
   }

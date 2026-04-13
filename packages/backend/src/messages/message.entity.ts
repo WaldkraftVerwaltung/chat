@@ -1,9 +1,10 @@
 import {
   Entity, PrimaryGeneratedColumn, Column, CreateDateColumn,
-  ManyToOne, JoinColumn,
+  ManyToOne, OneToMany, JoinColumn,
 } from 'typeorm';
 import { User } from '../users/user.entity';
 import { Channel } from '../channels/channel.entity';
+import { FileAttachment } from '../files/file-attachment.entity';
 
 @Entity('messages')
 export class Message {
@@ -60,4 +61,7 @@ export class Message {
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
+
+  @OneToMany(() => FileAttachment, (f) => f.message)
+  files: FileAttachment[];
 }
