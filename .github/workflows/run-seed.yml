@@ -1,0 +1,20 @@
+name: Run Seed
+
+on:
+  workflow_dispatch:
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run seed on server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: 91.107.233.103
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/chat
+            export COMPOSE_PROJECT_NAME=chat
+            docker compose exec -T backend ls dist/database/ 2>&1 || echo "No database dir"
+            docker compose exec -T backend node dist/database/seed.js 2>&1 || echo "seed.js failed"
