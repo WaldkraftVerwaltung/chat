@@ -20,7 +20,6 @@ jobs:
           script: |
             set -e
 
-            # Clone or update repo
             if [ ! -d /opt/chat ]; then
               git clone "https://x-access-token:${GH_PAT}@github.com/WaldkraftVerwaltung/chat.git" /opt/chat
             else
@@ -32,58 +31,25 @@ jobs:
             fi
 
             cd /opt/chat
-
-            # Create .env from template
             cp .env.production .env
-
-            # Add container names to prevent conflicts with other projects
             export COMPOSE_PROJECT_NAME=chat
 
-            # Build and start
             docker compose build
             docker compose up -d
 
-            # Wait for services
-            echo "Waiting for services to start..."
-            sleep 20
+            echo "Waiting for services..."
+            sleep 25
 
-            # Run seed (creates users and channels)
             docker compose exec -T backend node dist/database/seed.js 2>&1 || echo "Seed output above"
-
-            # Configure Caddy reverse proxy if not already done
-            CADDY_CONFIG="/etc/caddy/Caddyfile"
-            if [ -f "$CADDY_CONFIG" ] && ! grep -q "chat.waldkraft.bio" "$CADDY_CONFIG"; then
-              cat >> "$CADDY_CONFIG" << 'CADDYEOF'
-
-            chat.waldkraft.bio {
-                handle /api/* {
-                    reverse_proxy localhost:3010
-                }
-
-                handle /socket.io/* {
-                    reverse_proxy localhost:3010
-                }
-
-                handle {
-                    reverse_proxy localhost:3011
-                }
-            }
-            CADDYEOF
-              # Reload system Caddy
-              systemctl reload caddy 2>/dev/null || caddy reload --config "$CADDY_CONFIG" 2>/dev/null || docker exec caddy caddy reload --config /etc/caddy/Caddyfile 2>/dev/null || echo "Caddy reload: manual required"
-              echo "Added chat.waldkraft.bio to Caddy config"
-            else
-              echo "Caddy config already includes chat.waldkraft.bio (or no Caddyfile found)"
-            fi
-
             docker compose ps
 
             echo ""
-            echo "=== Deployment complete ==="
-            echo "URL: https://chat.waldkraft.bio"
+            echo "=== Deploy complete ==="
+            echo "Frontend: http://91.107.233.103:3011"
+            echo "Backend:  http://91.107.233.103:3010"
             echo ""
             echo "Login:"
-            echo "  Jacob (Super Admin): jacob@waldkraft.bio / Chat2026!"
-            echo "  Andre (Member):      andre@waldkraft.bio / Chat2026!"
+            echo "  Jacob: jacob@waldkraft.bio / Chat2026!"
+            echo "  Andre: andre@waldkraft.bio / Chat2026!"
         env:
           GH_PAT: ${{ secrets.GH_PAT }}

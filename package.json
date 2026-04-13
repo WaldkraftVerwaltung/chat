@@ -1,6 +1,7 @@
 {
   "name": "chat",
   "private": true,
+  "packageManager": "npm@10.8.0",
   "workspaces": ["packages/*"],
   "scripts": {
     "dev": "turbo run dev",
