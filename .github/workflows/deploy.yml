@@ -34,6 +34,8 @@ jobs:
             cp .env.production .env
             export COMPOSE_PROJECT_NAME=chat
 
+            # Stop old containers first
+            docker compose down --remove-orphans 2>/dev/null || true
             docker compose build
             docker compose up -d
 
