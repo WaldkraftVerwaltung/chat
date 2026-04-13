@@ -25,5 +25,6 @@ COPY --from=builder /app/packages/frontend/public ./public
 COPY --from=builder /app/packages/frontend/package.json ./
 COPY --from=builder /app/packages/frontend/next.config.mjs ./
 COPY --from=builder /app/node_modules ./node_modules
+ENV PORT=3000
 EXPOSE 3000
-CMD ["npx", "next", "start"]
+CMD ["npx", "next", "start", "-p", "3000"]
