@@ -5,6 +5,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { WsAuthService } from './ws-auth.guard';
 import { MessagesService } from '../messages/messages.service';
+import { ReactionsService } from '../reactions/reactions.service';
 
 @WebSocketGateway({ cors: { origin: '*', credentials: true }, namespace: '/' })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -16,6 +17,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private wsAuth: WsAuthService,
     private messagesService: MessagesService,
+    private reactionsService: ReactionsService,
   ) {}
 
   async handleConnection(socket: Socket) {
@@ -57,6 +59,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (data.threadParentId) {
       this.server.to(`channel:${data.channelId}`).emit('thread:reply', { parentId: data.threadParentId, message });
     }
+  }
+
+  @SubscribeMessage('reaction:toggle')
+  async handleReaction(@ConnectedSocket() socket: Socket, @MessageBody() data: { messageId: string; emojiCode: string; channelId: string }) {
+    const user = socket.data.user;
+    if (!user) return;
+    const result = await this.reactionsService.toggle(data.messageId, user.id, data.emojiCode);
+    const event = result.added ? 'reaction:add' : 'reaction:remove';
+    this.server.to(`channel:${data.channelId}`).emit(event, {
+      messageId: data.messageId, emojiCode: data.emojiCode, userId: user.id, displayName: user.displayName,
+    });
   }
 
   @SubscribeMessage('typing:start')
