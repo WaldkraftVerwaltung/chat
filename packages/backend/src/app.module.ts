@@ -10,6 +10,8 @@ import { GatewayModule } from './gateway/gateway.module';
 import { DmModule } from './dm/dm.module';
 import { WorkspacesModule } from './workspaces/workspaces.module';
 import { ReactionsModule } from './reactions/reactions.module';
+import { FilesModule } from './files/files.module';
+import { EmojiModule } from './emoji/emoji.module';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { ReactionsModule } from './reactions/reactions.module';
     DmModule,
     WorkspacesModule,
     ReactionsModule,
+    FilesModule,
+    EmojiModule,
   ],
 })
 export class AppModule {}
