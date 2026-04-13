@@ -37,7 +37,7 @@ export function ChannelDetailsPanel({ channelId, channelName, topic, description
       <div className="flex border-b">
         {tabs.map((tab) => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
-            className={`flex-1 px-3 py-2 text-xs font-medium ${activeTab === tab.id ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}>
+            className={`flex-1 px-3 py-2 text-xs font-medium ${activeTab === tab.id ? 'border-b-2 border-slack-blue text-slack-blue' : 'text-slack-gray-text hover:text-gray-700'}`}>
             {tab.label}
           </button>
         ))}

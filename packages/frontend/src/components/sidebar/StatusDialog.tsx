@@ -65,7 +65,7 @@ export function StatusDialog({ isOpen, onClose }: StatusDialogProps) {
           <button onClick={clearStatus} className="text-sm text-red-600 hover:underline">Status loeschen</button>
           <div className="flex gap-2">
             <button onClick={onClose} className="rounded px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100">Abbrechen</button>
-            <button onClick={() => setStatus(emoji, text)} disabled={loading} className="rounded bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700">Speichern</button>
+            <button onClick={() => setStatus(emoji, text)} disabled={loading} className="rounded bg-slack-green px-3 py-1.5 text-sm text-white hover:bg-slack-green-hover">Speichern</button>
           </div>
         </div>
       </div>

@@ -1,3 +1,26 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Slack-style mrkdwn rendered content */
+.mrkdwn-content code {
+  background-color: #F6F6F6;
+  color: #E01E5A;
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+  font-size: 0.85em;
+}
+
+.mrkdwn-content pre {
+  background-color: #F6F6F6;
+  border-radius: 4px;
+  padding: 0.75em 1em;
+  overflow-x: auto;
+}
+
+.mrkdwn-content blockquote {
+  border-left: 3px solid #E8E8E8;
+  padding-left: 0.75em;
+  color: #616061;
+  margin: 0.25em 0;
+}

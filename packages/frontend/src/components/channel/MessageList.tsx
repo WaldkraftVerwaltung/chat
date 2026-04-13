@@ -81,10 +81,10 @@ export function MessageList({ channelId }: { channelId: string }) {
       {showScrollBtn && (
         <button
           onClick={scrollToBottom}
-          className="absolute bottom-4 right-4 flex items-center gap-1.5 rounded-full bg-indigo-600 px-3 py-2 text-xs font-medium text-white shadow-lg hover:bg-indigo-700 transition-colors"
+          className="absolute bottom-4 right-4 flex items-center gap-1.5 rounded-full bg-slack-green px-3 py-2 text-xs font-medium text-white shadow-lg hover:bg-slack-green-hover transition-colors"
         >
           {unreadWhileScrolled > 0 && (
-            <span className="bg-white text-indigo-600 rounded-full px-1.5 py-0.5 text-xs font-bold leading-none">
+            <span className="bg-white text-slack-green rounded-full px-1.5 py-0.5 text-xs font-bold leading-none">
               {unreadWhileScrolled}
             </span>
           )}

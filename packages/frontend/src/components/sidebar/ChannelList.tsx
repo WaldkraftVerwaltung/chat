@@ -35,19 +35,25 @@ export function ChannelList() {
         key={ch.id}
         href={`/channel/${ch.id}`}
         onClick={() => handleChannelClick(ch.id)}
-        className={`group flex items-center gap-2 rounded px-3 py-1 text-sm hover:bg-gray-100 ${isActive ? 'bg-indigo-50 text-indigo-700 font-medium' : unread > 0 ? 'text-gray-900 font-semibold' : 'text-gray-700'}`}
+        className={`group flex items-center gap-2 rounded px-3 py-1 text-sm transition-colors ${
+          isActive
+            ? 'bg-slack-active text-white font-medium'
+            : unread > 0
+            ? 'text-white font-semibold hover:bg-slack-aubergine-light'
+            : 'text-slack-text hover:bg-slack-aubergine-light hover:text-slack-text-bright'
+        }`}
       >
-        <span className="text-gray-400">{ch.type === 'public' ? '#' : '\uD83D\uDD12'}</span>
+        <span className={isActive ? 'text-white/70' : 'text-slack-text/70'}>{ch.type === 'public' ? '#' : '\uD83D\uDD12'}</span>
         <span className="flex-1 truncate">{ch.name}</span>
         <button
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleStar(ch.id); }}
-          className={`transition-opacity text-yellow-400 text-xs ${isStarred ? 'opacity-100' : 'opacity-0 group-hover:opacity-50 hover:!opacity-100'}`}
+          className={`transition-opacity text-yellow-300 text-xs ${isStarred ? 'opacity-100' : 'opacity-0 group-hover:opacity-40 hover:!opacity-100'}`}
           title={isStarred ? 'Aus Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
         >
           {isStarred ? '★' : '☆'}
         </button>
         {unread > 0 && (
-          <span className="rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] text-white font-bold min-w-[18px] text-center">
+          <span className="rounded-full bg-slack-red px-1.5 py-0.5 text-[10px] text-white font-bold min-w-[18px] text-center">
             {unread > 99 ? '99+' : unread}
           </span>
         )}
@@ -69,17 +75,17 @@ export function ChannelList() {
               const el = document.getElementById('channels-section-toggle');
               el?.click();
             }}
-            className="flex flex-1 items-center gap-1 text-xs font-semibold uppercase text-gray-500 hover:text-gray-700"
+            className="flex flex-1 items-center gap-1 text-xs font-semibold uppercase text-slack-text hover:text-slack-text-bright"
           >
             <span className="text-[10px]">&#9654;</span>
             <span className="flex-1 text-left">Channels</span>
             {totalRegularUnread > 0 && (
-              <span className="rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] text-white font-bold">{totalRegularUnread}</span>
+              <span className="rounded-full bg-slack-red px-1.5 py-0.5 text-[10px] text-white font-bold">{totalRegularUnread}</span>
             )}
           </button>
           <button
             onClick={() => setShowCreateChannel(true)}
-            className="ml-1 text-gray-400 hover:text-gray-600 text-sm leading-none px-1"
+            className="ml-1 text-slack-text hover:text-slack-text-bright text-sm leading-none px-1"
             title="Channel erstellen"
           >
             +

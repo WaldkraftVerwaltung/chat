@@ -36,14 +36,14 @@ export function DmList() {
   return (
     <div className="space-y-0.5 mt-2">
       <div className="flex items-center justify-between px-3 py-1">
-        <span className="text-xs font-semibold uppercase text-gray-500">Direktnachrichten</span>
-        <button onClick={openUserPicker} className="text-gray-400 hover:text-gray-600 text-lg leading-none" title="Neue DM">+</button>
+        <span className="text-xs font-semibold uppercase text-slack-text">Direktnachrichten</span>
+        <button onClick={openUserPicker} className="text-slack-text hover:text-slack-text-bright text-lg leading-none" title="Neue DM">+</button>
       </div>
 
       {conversations.map((conv) => (
         <Link key={conv.id} href={`/dm/${conv.id}`}
-          className="flex items-center gap-2 rounded px-3 py-1 text-sm text-gray-700 hover:bg-gray-100">
-          <span className="h-2 w-2 rounded-full bg-gray-400" />
+          className="flex items-center gap-2 rounded px-3 py-1 text-sm text-slack-text hover:bg-slack-aubergine-light hover:text-slack-text-bright transition-colors">
+          <span className="h-2 w-2 rounded-full bg-green-400" />
           <span className="truncate">{getDmName(conv)}</span>
         </Link>
       ))}
@@ -56,7 +56,7 @@ export function DmList() {
             <div className="max-h-60 overflow-y-auto space-y-1">
               {users.map((u) => (
                 <button key={u.id} onClick={() => handleStartDm(u.id)}
-                  className="flex w-full items-center gap-2 rounded px-3 py-2 text-sm hover:bg-gray-100">
+                  className="flex w-full items-center gap-2 rounded px-3 py-2 text-sm hover:bg-slack-msg-hover">
                   <div className="h-7 w-7 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold">
                     {u.displayName?.[0]?.toUpperCase() || '?'}
                   </div>

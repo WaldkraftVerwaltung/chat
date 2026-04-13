@@ -37,8 +37,8 @@ export function ReactionBar({ messageId, channelId, reactions }: ReactionBarProp
               onMouseLeave={() => setHoveredEmoji(null)}
               className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-all duration-150 ${
                 isMine
-                  ? 'border-indigo-300 bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
-                  : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
+                  ? 'border-slack-blue/30 bg-slack-mention-bg text-slack-blue hover:bg-slack-mention-bg/80'
+                  : 'border-slack-border bg-gray-50 text-slack-gray-text hover:bg-slack-msg-hover'
               }`}
             >
               <span className="transition-transform duration-150 hover:scale-110">{r.emoji}</span>
@@ -60,7 +60,7 @@ export function ReactionBar({ messageId, channelId, reactions }: ReactionBarProp
         <button
           id={`reaction-picker-${messageId}`}
           onClick={() => setShowPicker(!showPicker)}
-          className="rounded-full border border-dashed border-gray-300 px-2 py-0.5 text-xs text-gray-400 hover:bg-gray-50 hover:border-gray-400 transition-colors"
+          className="rounded-full border border-dashed border-slack-input-border px-2 py-0.5 text-xs text-slack-gray-text hover:bg-slack-msg-hover hover:border-slack-gray-text transition-colors"
         >
           +
         </button>

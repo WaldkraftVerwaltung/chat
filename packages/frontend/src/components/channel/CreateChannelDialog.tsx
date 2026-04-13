@@ -66,21 +66,21 @@ export function CreateChannelDialog({ isOpen, onClose }: CreateChannelDialogProp
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Beschreibung (optional)</label>
             <input value={description} onChange={(e) => setDescription(e.target.value)}
-              placeholder="Worum geht es in diesem Channel?" className="w-full rounded-md border px-3 py-2 text-sm outline-none focus:border-indigo-500" maxLength={250} />
+              placeholder="Worum geht es in diesem Channel?" className="w-full rounded-md border border-slack-input-border px-3 py-2 text-sm outline-none focus:border-slack-blue" maxLength={250} />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Sichtbarkeit</label>
             <div className="space-y-2">
               <label className="flex items-center gap-3 cursor-pointer">
-                <input type="radio" name="type" value="public" checked={type === 'public'} onChange={() => setType('public')} className="text-indigo-600" />
+                <input type="radio" name="type" value="public" checked={type === 'public'} onChange={() => setType('public')} className="accent-slack-blue" />
                 <div>
                   <p className="text-sm font-medium"># Oeffentlich</p>
                   <p className="text-xs text-gray-500">Jeder kann beitreten und Nachrichten sehen</p>
                 </div>
               </label>
               <label className="flex items-center gap-3 cursor-pointer">
-                <input type="radio" name="type" value="private" checked={type === 'private'} onChange={() => setType('private')} className="text-indigo-600" />
+                <input type="radio" name="type" value="private" checked={type === 'private'} onChange={() => setType('private')} className="accent-slack-blue" />
                 <div>
                   <p className="text-sm font-medium">🔒 Privat</p>
                   <p className="text-xs text-gray-500">Nur eingeladene Mitglieder koennen beitreten</p>
@@ -91,7 +91,7 @@ export function CreateChannelDialog({ isOpen, onClose }: CreateChannelDialogProp
 
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={onClose} className="rounded-md px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Abbrechen</button>
-            <button type="submit" disabled={loading || !name} className="rounded-md bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-700 disabled:opacity-50">
+            <button type="submit" disabled={loading || !name} className="rounded-md bg-slack-green px-4 py-2 text-sm text-white hover:bg-slack-green-hover disabled:opacity-50">
               {loading ? 'Erstelle...' : 'Erstellen'}
             </button>
           </div>

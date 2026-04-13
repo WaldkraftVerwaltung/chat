@@ -37,7 +37,7 @@ export default function LoginPage() {
           <Input label="Passwort" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           <Button type="submit" className="w-full" disabled={loading}>{loading ? 'Wird angemeldet...' : 'Anmelden'}</Button>
         </form>
-        <p className="text-center text-sm text-gray-600">Noch kein Konto?{' '}<Link href="/register" className="text-indigo-600 hover:underline">Registrieren</Link></p>
+        <p className="text-center text-sm text-gray-600">Noch kein Konto?{' '}<Link href="/register" className="text-slack-blue hover:underline">Registrieren</Link></p>
       </div>
     </div>
   );

@@ -39,7 +39,7 @@ export default function RegisterPage() {
           <Input label="Passwort" type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={8} required />
           <Button type="submit" className="w-full" disabled={loading}>{loading ? 'Wird registriert...' : 'Registrieren'}</Button>
         </form>
-        <p className="text-center text-sm text-gray-600">Bereits ein Konto?{' '}<Link href="/login" className="text-indigo-600 hover:underline">Anmelden</Link></p>
+        <p className="text-center text-sm text-gray-600">Bereits ein Konto?{' '}<Link href="/login" className="text-slack-blue hover:underline">Anmelden</Link></p>
       </div>
     </div>
   );

@@ -260,18 +260,18 @@ export function MessageInput({ channelId, threadParentId }: { channelId: string;
   const canSend = !uploading && (content.trim().length > 0 || !!pendingFile);
 
   return (
-    <div className="border-t bg-white px-5 py-3">
+    <div className="border-t border-slack-border bg-white px-5 py-3">
       {/* File preview */}
       {pendingFile && (
-        <div className="mb-2 flex items-center gap-2 rounded border bg-gray-50 px-3 py-1.5 text-sm">
+        <div className="mb-2 flex items-center gap-2 rounded border border-slack-border bg-gray-50 px-3 py-1.5 text-sm">
           <span className="truncate text-gray-700 max-w-[300px]">{pendingFile.originalFilename}</span>
-          <button onClick={() => setPendingFile(null)} className="ml-auto text-gray-400 hover:text-gray-600" title="Entfernen">&#x2715;</button>
+          <button onClick={() => setPendingFile(null)} className="ml-auto text-slack-gray-text hover:text-gray-700" title="Entfernen">&#x2715;</button>
         </div>
       )}
 
       {/* Formatting toolbar */}
       {showFormatBar && (
-        <div className="mb-1 flex items-center gap-0.5 rounded-t-lg border border-b-0 bg-gray-50 px-2 py-1">
+        <div className="mb-1 flex items-center gap-0.5 rounded-t-lg border border-b-0 border-slack-input-border bg-gray-50 px-2 py-1">
           <FmtBtn label="B" title="Fett (*text*)" onClick={() => wrapSelection('*', '*')} className="font-bold" />
           <FmtBtn label="I" title="Kursiv (_text_)" onClick={() => wrapSelection('_', '_')} className="italic" />
           <FmtBtn label="S" title="Durchgestrichen (~text~)" onClick={() => wrapSelection('~', '~')} className="line-through" />
@@ -284,16 +284,16 @@ export function MessageInput({ channelId, threadParentId }: { channelId: string;
         </div>
       )}
 
-      <div className={`flex flex-col rounded-lg border bg-gray-50 ${showFormatBar ? 'rounded-t-none border-t' : ''}`}>
+      <div className={`flex flex-col rounded-lg border border-slack-input-border bg-white ${showFormatBar ? 'rounded-t-none border-t' : ''}`}>
         {/* Mention autocomplete dropdown */}
         {mentionQuery !== null && mentionResults.length > 0 && (
-          <div className="border-b bg-white rounded-t-lg shadow-inner">
+          <div className="border-b border-slack-border bg-white rounded-t-lg shadow-inner">
             {mentionResults.slice(0, 8).map((member, i) => (
               <button
                 key={member.id}
                 onClick={() => insertMention(member)}
                 className={`flex w-full items-center gap-2 px-3 py-1.5 text-sm ${
-                  i === selectedMentionIndex ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-gray-50'
+                  i === selectedMentionIndex ? 'bg-slack-mention-bg text-slack-blue' : 'text-gray-700 hover:bg-slack-msg-hover'
                 }`}
               >
                 <span className="font-medium">@{member.displayName}</span>
@@ -304,13 +304,13 @@ export function MessageInput({ channelId, threadParentId }: { channelId: string;
 
         {/* Channel autocomplete dropdown */}
         {channelQuery !== null && channelResults.length > 0 && (
-          <div className="border-b bg-white rounded-t-lg shadow-inner">
+          <div className="border-b border-slack-border bg-white rounded-t-lg shadow-inner">
             {channelResults.slice(0, 8).map((ch, i) => (
               <button
                 key={ch.id}
                 onClick={() => insertChannelRef(ch)}
                 className={`flex w-full items-center gap-2 px-3 py-1.5 text-sm ${
-                  i === selectedMentionIndex ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-gray-50'
+                  i === selectedMentionIndex ? 'bg-slack-mention-bg text-slack-blue' : 'text-gray-700 hover:bg-slack-msg-hover'
                 }`}
               >
                 <span className="font-medium">#{ch.name}</span>
@@ -324,7 +324,7 @@ export function MessageInput({ channelId, threadParentId }: { channelId: string;
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
-            className="rounded p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-200 disabled:opacity-50"
+            className="rounded p-1 text-slack-gray-text hover:text-gray-700 hover:bg-slack-msg-hover disabled:opacity-50"
             title="Datei anhaengen"
           >
             {uploading ? (
@@ -344,7 +344,7 @@ export function MessageInput({ channelId, threadParentId }: { channelId: string;
             onChange={(e) => handleInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Nachricht schreiben..."
-            className="flex-1 resize-none bg-transparent text-sm outline-none"
+            className="flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-slack-gray-text"
             rows={1}
           />
 
@@ -352,7 +352,7 @@ export function MessageInput({ channelId, threadParentId }: { channelId: string;
           <button
             onClick={() => setShowFormatBar(!showFormatBar)}
             className={`rounded p-1 text-sm font-semibold transition-colors ${
-              showFormatBar ? 'text-indigo-600 bg-indigo-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-200'
+              showFormatBar ? 'text-slack-blue bg-slack-mention-bg' : 'text-slack-gray-text hover:text-gray-700 hover:bg-slack-msg-hover'
             }`}
             title="Formatierung"
           >
@@ -363,7 +363,7 @@ export function MessageInput({ channelId, threadParentId }: { channelId: string;
           <div className="relative">
             <button
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              className="rounded p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-200"
+              className="rounded p-1 text-slack-gray-text hover:text-gray-700 hover:bg-slack-msg-hover"
               title="Emoji"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -384,7 +384,7 @@ export function MessageInput({ channelId, threadParentId }: { channelId: string;
           <button
             onClick={sendMessage}
             disabled={!canSend}
-            className="rounded bg-indigo-600 px-3 py-1 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
+            className="rounded bg-slack-green px-3 py-1 text-sm text-white hover:bg-slack-green-hover disabled:opacity-50"
           >
             Senden
           </button>
@@ -398,7 +398,7 @@ function FmtBtn({ label, title, onClick, className = '' }: { label: string; titl
   return (
     <button
       onClick={onClick}
-      className={`rounded px-2 py-0.5 text-sm text-gray-600 hover:bg-gray-200 transition-colors ${className}`}
+      className={`rounded px-2 py-0.5 text-sm text-slack-gray-text hover:bg-slack-msg-hover transition-colors ${className}`}
       title={title}
     >
       {label}

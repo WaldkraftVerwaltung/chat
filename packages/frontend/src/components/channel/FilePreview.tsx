@@ -21,7 +21,7 @@ export function FilePreview({ file }: FilePreviewProps) {
       )}
       <div className="min-w-0">
         <a href={`${apiUrl}/api/files/${file.id}/download`} target="_blank" rel="noopener"
-          className="text-sm font-medium text-indigo-600 hover:underline truncate block max-w-[200px]">
+          className="text-sm font-medium text-slack-blue hover:underline truncate block max-w-[200px]">
           {file.originalFilename}
         </a>
         <span className="text-xs text-gray-500">{sizeLabel}</span>

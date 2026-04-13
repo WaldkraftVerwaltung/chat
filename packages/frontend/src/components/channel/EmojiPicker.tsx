@@ -58,34 +58,31 @@ export function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
   }
 
   const allEmojis: string[] = (Object.values(categories) as string[][]).flat();
-  const filtered = search
-    ? allEmojis.filter(() => true) // unicode emojis can't be searched by name easily, show all and let user scroll
-    : null;
 
   const categoryKeys = Object.keys(categories);
 
   return (
-    <div ref={ref} className="w-80 rounded-xl border bg-white shadow-xl z-50 overflow-hidden">
+    <div ref={ref} className="w-80 rounded-xl border border-slack-border bg-white shadow-xl z-50 overflow-hidden">
       {/* Search */}
-      <div className="p-2 border-b">
+      <div className="p-2 border-b border-slack-border">
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Emoji suchen..."
-          className="w-full rounded-md border px-3 py-1.5 text-sm outline-none focus:border-indigo-400"
+          className="w-full rounded-md border border-slack-input-border px-3 py-1.5 text-sm outline-none focus:border-slack-blue"
           autoFocus
         />
       </div>
 
       {/* Category tabs */}
-      <div className="flex gap-0.5 px-2 py-1 border-b overflow-x-auto">
+      <div className="flex gap-0.5 px-2 py-1 border-b border-slack-border overflow-x-auto">
         {categoryKeys.map((cat) => (
           <button
             key={cat}
             onClick={() => { setActiveCategory(cat); setSearch(''); }}
             className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap transition-colors ${
-              activeCategory === cat ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:bg-gray-100'
+              activeCategory === cat ? 'bg-slack-mention-bg text-slack-blue' : 'text-slack-gray-text hover:bg-slack-msg-hover'
             }`}
           >
             {cat}
@@ -101,7 +98,7 @@ export function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
               <button
                 key={`${emoji}-${i}`}
                 onClick={() => handleSelect(emoji)}
-                className="rounded p-1 text-xl hover:bg-gray-100 transition-colors flex items-center justify-center"
+                className="rounded p-1 text-xl hover:bg-slack-msg-hover transition-colors flex items-center justify-center"
               >
                 {emoji}
               </button>
@@ -119,7 +116,7 @@ export function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
                       <button
                         key={`${emoji}-${i}`}
                         onClick={() => handleSelect(emoji)}
-                        className="rounded p-1 text-xl hover:bg-gray-100 transition-colors flex items-center justify-center"
+                        className="rounded p-1 text-xl hover:bg-slack-msg-hover transition-colors flex items-center justify-center"
                       >
                         {emoji}
                       </button>

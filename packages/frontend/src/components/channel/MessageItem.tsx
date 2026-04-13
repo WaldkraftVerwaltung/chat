@@ -69,7 +69,7 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
     return (
       <div className="px-5 py-1.5 flex gap-3">
         <div className="w-9 flex-shrink-0" />
-        <p className="text-sm text-gray-400 italic">Diese Nachricht wurde geloescht.</p>
+        <p className="text-sm text-slack-gray-text italic">Diese Nachricht wurde geloescht.</p>
       </div>
     );
   }
@@ -152,7 +152,7 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
     <>
       <div
         ref={messageRef}
-        className={`group relative flex gap-3 px-5 hover:bg-amber-50/40 transition-colors ${
+        className={`group relative flex gap-3 px-5 hover:bg-slack-msg-hover transition-colors ${
           isGrouped ? 'py-0.5' : 'py-1.5'
         } ${message.isPinned ? 'bg-yellow-50/50 border-l-2 border-yellow-400' : ''}`}
         onMouseEnter={() => setShowActions(true)}
@@ -162,7 +162,7 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
         {/* Avatar or time gutter */}
         {isGrouped ? (
           <div className="w-9 flex-shrink-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <span className="text-[10px] text-gray-400">{time}</span>
+            <span className="text-[10px] text-slack-gray-text">{time}</span>
           </div>
         ) : (
           <div className="mt-0.5 flex-shrink-0">
@@ -175,8 +175,8 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
           {!isGrouped && (
             <div className="flex items-baseline gap-2">
               <span className="text-sm font-bold text-gray-900">{message.user?.displayName || 'Unbekannt'}</span>
-              <span className="text-xs text-gray-500">{time}</span>
-              {message.isEdited && <span className="text-xs text-gray-400">(bearbeitet)</span>}
+              <span className="text-xs text-slack-gray-text">{time}</span>
+              {message.isEdited && <span className="text-xs text-slack-gray-text">(bearbeitet)</span>}
               {message.isPinned && <span className="text-xs text-yellow-600">Angepinnt</span>}
             </div>
           )}
@@ -191,14 +191,14 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
                   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleEdit(); }
                   if (e.key === 'Escape') { setIsEditing(false); setEditContent(message.content); }
                 }}
-                className="w-full rounded-md border border-indigo-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-200 resize-none"
+                className="w-full rounded-md border border-slack-input-border bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slack-blue/30 resize-none"
                 rows={Math.max(2, editContent.split('\n').length)}
                 autoFocus
               />
               <div className="mt-1 flex items-center gap-2">
                 <button
                   onClick={handleEdit}
-                  className="rounded bg-indigo-600 px-3 py-1 text-xs text-white hover:bg-indigo-700"
+                  className="rounded bg-slack-green px-3 py-1 text-xs text-white hover:bg-slack-green-hover"
                 >
                   Speichern
                 </button>
@@ -208,16 +208,16 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
                 >
                   Abbrechen
                 </button>
-                <span className="text-xs text-gray-400">Escape zum Abbrechen, Enter zum Speichern</span>
+                <span className="text-xs text-slack-gray-text">Escape zum Abbrechen, Enter zum Speichern</span>
               </div>
             </div>
           ) : (
             <>
               {isGrouped && message.isEdited && (
-                <span className="text-xs text-gray-400">(bearbeitet)</span>
+                <span className="text-xs text-slack-gray-text">(bearbeitet)</span>
               )}
               <div
-                className="text-sm text-gray-800 whitespace-pre-wrap break-words [&_pre]:whitespace-pre-wrap [&_a]:text-indigo-600 [&_a]:hover:underline"
+                className="text-sm text-gray-800 whitespace-pre-wrap break-words [&_pre]:whitespace-pre-wrap [&_a]:text-slack-blue [&_a]:hover:underline"
                 dangerouslySetInnerHTML={{ __html: renderedHtml }}
               />
             </>
@@ -241,7 +241,7 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
           {message.replyCount != null && message.replyCount > 0 && (
             <button
               onClick={handleOpenThread}
-              className="mt-1.5 flex items-center gap-2 rounded-md px-2 py-1 text-xs text-indigo-600 hover:bg-indigo-50 transition-colors group/thread"
+              className="mt-1.5 flex items-center gap-2 rounded-md px-2 py-1 text-xs text-slack-blue hover:bg-slack-mention-bg transition-colors group/thread"
             >
               {message.threadParticipants && message.threadParticipants.length > 0 && (
                 <div className="flex -space-x-1.5">
@@ -253,14 +253,14 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
               <span className="font-medium group-hover/thread:underline">
                 {message.replyCount} Antwort{message.replyCount !== 1 ? 'en' : ''}
               </span>
-              <span className="text-gray-400">Zum Ansehen klicken</span>
+              <span className="text-slack-gray-text">Zum Ansehen klicken</span>
             </button>
           )}
         </div>
 
         {/* Floating action bar */}
         {showActions && !isEditing && (
-          <div className="absolute right-4 -top-3 flex items-center rounded-lg border bg-white shadow-md z-10">
+          <div className="absolute right-4 -top-3 flex items-center rounded-lg border border-slack-border bg-white shadow-md z-10">
             <ActionButton icon="&#128512;" title="Reaktion hinzufuegen" onClick={() => setShowEmojiPicker(!showEmojiPicker)} />
             <ActionButton icon="&#128172;" title="Im Thread antworten" onClick={handleOpenThread} />
             <ActionButton icon="&#128204;" title={message.isPinned ? 'Losloesung aufheben' : 'Anpinnen'} onClick={handlePin} />
@@ -273,7 +273,7 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
             <div className="relative">
               <ActionButton icon="&#8943;" title="Mehr" onClick={() => setShowMoreMenu(!showMoreMenu)} />
               {showMoreMenu && (
-                <div className="absolute right-0 top-full mt-1 min-w-[180px] rounded-lg border bg-white py-1 shadow-xl z-20">
+                <div className="absolute right-0 top-full mt-1 min-w-[180px] rounded-lg border border-slack-border bg-white py-1 shadow-xl z-20">
                   <MoreMenuItem label="Link kopieren" onClick={() => { handleCopyLink(); setShowMoreMenu(false); }} />
                   <MoreMenuItem label="Text kopieren" onClick={() => { handleCopyText(); setShowMoreMenu(false); }} />
                   <MoreMenuItem label="Ab hier als ungelesen" onClick={() => { handleMarkUnread(); setShowMoreMenu(false); }} />
@@ -322,7 +322,7 @@ function ActionButton({ icon, title, onClick }: { icon: string; title: string; o
   return (
     <button
       onClick={onClick}
-      className="px-2 py-1.5 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-700 first:rounded-l-lg last:rounded-r-lg transition-colors"
+      className="px-2 py-1.5 text-sm text-slack-gray-text hover:bg-slack-msg-hover hover:text-gray-900 first:rounded-l-lg last:rounded-r-lg transition-colors"
       title={title}
     >
       <span dangerouslySetInnerHTML={{ __html: icon }} />
@@ -334,7 +334,7 @@ function MoreMenuItem({ label, onClick }: { label: string; onClick: () => void }
   return (
     <button
       onClick={onClick}
-      className="flex w-full px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 text-left"
+      className="flex w-full px-3 py-1.5 text-sm text-gray-700 hover:bg-slack-msg-hover text-left"
     >
       {label}
     </button>

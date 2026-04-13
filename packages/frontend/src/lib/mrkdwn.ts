@@ -11,7 +11,7 @@ export function renderMrkdwn(text: string): string {
   // Code block: ```code```
   html = html.replace(/```([\s\S]*?)```/g, '<pre class="bg-gray-100 rounded p-2 text-sm font-mono my-1 overflow-x-auto">$1</pre>');
   // Inline code: `code`
-  html = html.replace(/`(.*?)`/g, '<code class="bg-gray-100 rounded px-1 py-0.5 text-sm font-mono text-red-600">$1</code>');
+  html = html.replace(/`(.*?)`/g, '<code class="bg-gray-100 rounded px-1 py-0.5 text-sm font-mono" style="color:#E01E5A">$1</code>');
   // Bold: *text*
   html = html.replace(/\*(.*?)\*/g, '<strong>$1</strong>');
   // Italic: _text_
@@ -21,11 +21,11 @@ export function renderMrkdwn(text: string): string {
   // Blockquote: > text
   html = html.replace(/^&gt; (.+)$/gm, '<blockquote class="border-l-4 border-gray-300 pl-3 text-gray-600 my-1">$1</blockquote>');
   // Links: http(s)://...
-  html = html.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener" class="text-indigo-600 hover:underline">$1</a>');
+  html = html.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener" style="color:#1264A3" class="hover:underline">$1</a>');
   // @mentions
-  html = html.replace(/@(\w+)/g, '<span class="bg-indigo-100 text-indigo-700 rounded px-1 font-medium">@$1</span>');
+  html = html.replace(/@(\w+)/g, '<span style="background:#E8F5FA;color:#1264A3" class="rounded px-1 font-medium">@$1</span>');
   // #channels
-  html = html.replace(/#(\w[\w-]*)/g, '<span class="bg-indigo-100 text-indigo-700 rounded px-1 font-medium">#$1</span>');
+  html = html.replace(/#(\w[\w-]*)/g, '<span style="background:#E8F5FA;color:#1264A3" class="rounded px-1 font-medium">#$1</span>');
   // Newlines
   html = html.replace(/\n/g, '<br>');
   return html;

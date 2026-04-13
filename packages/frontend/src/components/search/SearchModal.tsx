@@ -64,14 +64,14 @@ export function SearchModal() {
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-20" onClick={close}>
       <div className="absolute inset-0 bg-black/30" />
       <div className="relative w-full max-w-2xl rounded-lg bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center gap-3 border-b px-4 py-3">
-          <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="flex items-center gap-3 border-b border-slack-border px-4 py-3">
+          <svg className="h-5 w-5 text-slack-gray-text" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input ref={inputRef} value={query} onChange={(e) => handleInput(e.target.value)}
             placeholder="Nachrichten durchsuchen... (from:@user in:#channel has:file)"
-            className="flex-1 text-sm outline-none" />
-          <kbd className="rounded border bg-gray-100 px-2 py-0.5 text-xs text-gray-500">Esc</kbd>
+            className="flex-1 text-sm outline-none placeholder:text-slack-gray-text" />
+          <kbd className="rounded border border-slack-border bg-slack-msg-hover px-2 py-0.5 text-xs text-slack-gray-text">Esc</kbd>
         </div>
 
         {/* Empty query: show recent channels */}
@@ -79,18 +79,18 @@ export function SearchModal() {
           <div className="max-h-96 overflow-y-auto">
             {recentChannels.length > 0 ? (
               <>
-                <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">Zuletzt besucht</p>
+                <p className="px-4 pt-3 pb-1 text-xs font-semibold text-slack-gray-text uppercase tracking-wide">Zuletzt besucht</p>
                 {recentChannels.map((ch) => (
                   <button key={ch.id} onClick={() => navigateToChannel(ch.id)}
-                    className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-800">
-                    <span className="text-gray-400">#</span>
+                    className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:bg-slack-msg-hover text-gray-800">
+                    <span className="text-slack-gray-text">#</span>
                     <span>{ch.name}</span>
                   </button>
                 ))}
               </>
             ) : (
-              <div className="px-4 py-4 text-xs text-gray-400 space-y-1">
-                <p className="font-medium text-gray-500">Such-Tipps:</p>
+              <div className="px-4 py-4 text-xs text-slack-gray-text space-y-1">
+                <p className="font-medium text-gray-700">Such-Tipps:</p>
                 <p>from:@name — Nachrichten von Person</p>
                 <p>in:#channel — In bestimmtem Channel</p>
                 <p>has:file — Mit Dateianhang</p>
@@ -104,11 +104,11 @@ export function SearchModal() {
         {/* Query typed: channel matches always shown first */}
         {query && channelMatches.length > 0 && (
           <>
-            <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">Channels</p>
+            <p className="px-4 pt-3 pb-1 text-xs font-semibold text-slack-gray-text uppercase tracking-wide">Channels</p>
             {channelMatches.map((ch) => (
               <button key={ch.id} onClick={() => navigateToChannel(ch.id)}
-                className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-800">
-                <span className="text-gray-400">#</span>
+                className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:bg-slack-msg-hover text-gray-800">
+                <span className="text-slack-gray-text">#</span>
                 <span>{ch.name}</span>
               </button>
             ))}
@@ -118,17 +118,17 @@ export function SearchModal() {
         {/* Meilisearch results — only triggered for 3+ chars */}
         {query.length >= 3 && (
           <>
-            {loading && <div className="px-4 py-3 text-sm text-gray-400">Suche...</div>}
+            {loading && <div className="px-4 py-3 text-sm text-slack-gray-text">Suche...</div>}
             {!loading && results.length > 0 && (
               <div className="max-h-64 overflow-y-auto">
-                <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <p className="px-4 pt-3 pb-1 text-xs font-semibold text-slack-gray-text uppercase tracking-wide">
                   Nachrichten <span className="font-normal normal-case">({totalHits})</span>
                 </p>
                 {results.map((r) => (
                   <button key={r.id} onClick={() => navigateToResult(r)}
-                    className="flex w-full gap-3 px-4 py-2 text-left hover:bg-gray-50">
+                    className="flex w-full gap-3 px-4 py-2 text-left hover:bg-slack-msg-hover">
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <div className="flex items-center gap-2 text-xs text-slack-gray-text">
                         <span className="font-medium text-gray-700">{r.userName}</span>
                         {r.channelName && <span>in #{r.channelName}</span>}
                         <span>{new Date(r.createdAt).toLocaleDateString('de-DE')}</span>
@@ -141,14 +141,14 @@ export function SearchModal() {
               </div>
             )}
             {!loading && results.length === 0 && channelMatches.length === 0 && (
-              <div className="px-4 py-6 text-center text-sm text-gray-400">Keine Ergebnisse gefunden</div>
+              <div className="px-4 py-6 text-center text-sm text-slack-gray-text">Keine Ergebnisse gefunden</div>
             )}
           </>
         )}
 
         {/* Short query (1-2 chars) with no channel matches */}
         {query.length > 0 && query.length < 3 && channelMatches.length === 0 && (
-          <div className="px-4 py-3 text-sm text-gray-400">Mindestens 3 Zeichen für Nachrichtensuche</div>
+          <div className="px-4 py-3 text-sm text-slack-gray-text">Mindestens 3 Zeichen für Nachrichtensuche</div>
         )}
       </div>
     </div>

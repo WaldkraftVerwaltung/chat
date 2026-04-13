@@ -35,18 +35,18 @@ export function ThreadPanel({ channelId }: { channelId: string }) {
   }
 
   return (
-    <div className="flex h-full w-96 flex-col border-l bg-white">
-      <div className="flex items-center justify-between border-b px-4 py-3">
-        <h2 className="text-sm font-semibold">Thread</h2>
-        <button onClick={closeThread} className="text-gray-400 hover:text-gray-600 text-lg">&times;</button>
+    <div className="flex h-full w-96 flex-col border-l border-slack-border bg-white">
+      <div className="flex items-center justify-between border-b border-slack-border px-4 py-3">
+        <h2 className="text-sm font-semibold text-gray-900">Thread</h2>
+        <button onClick={closeThread} className="text-slack-gray-text hover:text-gray-700 text-lg">&times;</button>
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <div className="border-b pb-2">
+        <div className="border-b border-slack-border pb-2">
           <MessageItem message={parentMessage} channelId={channelId} />
         </div>
         <div className="py-2">
-          <p className="px-5 text-xs text-gray-500 mb-2">{threadReplies.length} Antwort{threadReplies.length !== 1 ? 'en' : ''}</p>
+          <p className="px-5 text-xs text-slack-gray-text mb-2">{threadReplies.length} Antwort{threadReplies.length !== 1 ? 'en' : ''}</p>
           {threadReplies.map((reply: any) => (
             <MessageItem key={reply.id} message={reply} channelId={channelId} />
           ))}
@@ -54,11 +54,11 @@ export function ThreadPanel({ channelId }: { channelId: string }) {
         </div>
       </div>
 
-      <div className="border-t px-4 py-3">
-        <div className="flex items-end gap-2 rounded-lg border bg-gray-50 px-3 py-2">
+      <div className="border-t border-slack-border px-4 py-3">
+        <div className="flex items-end gap-2 rounded-lg border border-slack-input-border bg-white px-3 py-2">
           <textarea value={replyContent} onChange={(e) => setReplyContent(e.target.value)} onKeyDown={handleKeyDown}
-            placeholder="Antworten..." className="flex-1 resize-none bg-transparent text-sm outline-none" rows={1} />
-          <button onClick={sendReply} disabled={!replyContent.trim()} className="rounded bg-indigo-600 px-3 py-1 text-sm text-white hover:bg-indigo-700 disabled:opacity-50">Senden</button>
+            placeholder="Antworten..." className="flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-slack-gray-text" rows={1} />
+          <button onClick={sendReply} disabled={!replyContent.trim()} className="rounded bg-slack-green px-3 py-1 text-sm text-white hover:bg-slack-green-hover disabled:opacity-50">Senden</button>
         </div>
       </div>
     </div>

@@ -62,7 +62,7 @@ export default function DmPage() {
               className="w-9 h-9 rounded-full object-cover"
             />
           ) : (
-            <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-semibold text-indigo-700">
+            <div className="w-9 h-9 rounded-full bg-slack-mention-bg flex items-center justify-center text-sm font-semibold text-slack-blue">
               {isSelfNote ? '📝' : initials}
             </div>
           )}
