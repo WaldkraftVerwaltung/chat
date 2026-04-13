@@ -57,7 +57,7 @@ export function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
     onSelect(emoji);
   }
 
-  const allEmojis = Object.values(categories).flat();
+  const allEmojis: string[] = (Object.values(categories) as string[][]).flat();
   const filtered = search
     ? allEmojis.filter(() => true) // unicode emojis can't be searched by name easily, show all and let user scroll
     : null;
