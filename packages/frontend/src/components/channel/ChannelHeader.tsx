@@ -97,6 +97,17 @@ export function ChannelHeader({ channelId, name, topic, type, memberCount, isSta
           </button>
         )}
 
+        {/* Huddle */}
+        <button
+          onClick={() => router.push('/huddles')}
+          title="Huddle starten"
+          className="p-2 rounded hover:bg-gray-100 transition-colors text-gray-400"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M12 9a3 3 0 010 6 3 3 0 010-6zm-3.536-1.536a5 5 0 000 7.072M3 11a9 9 0 1018 0A9 9 0 003 11z" />
+          </svg>
+        </button>
+
         {/* Members */}
         <button
           onClick={onToggleMembers}
