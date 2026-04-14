@@ -20,4 +20,10 @@ export class DmController {
 
   @Get(':id')
   findOne(@Param('id') id: string) { return this.dmService.findById(id); }
+
+  @Post('cleanup-duplicates')
+  async cleanupDuplicates(@CurrentUser() user: User) {
+    const removed = await this.dmService.removeDuplicates(user.workspaceId);
+    return { removed };
+  }
 }

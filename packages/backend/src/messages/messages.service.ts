@@ -13,10 +13,17 @@ export class MessagesService {
     private readonly searchService: SearchService,
   ) {}
 
-  async create(dto: CreateMessageDto, channelId: string, userId: string): Promise<Message> {
+  async create(dto: CreateMessageDto, channelOrDmId: string, userId: string): Promise<Message> {
+    // Check if this is a channel or DM conversation
+    // Try to find as channel first; if not found, treat as DM conversation
+    const isChannel = await this.messageRepo.manager.query(
+      'SELECT id FROM channels WHERE id = $1 LIMIT 1', [channelOrDmId]
+    );
+
     const message = this.messageRepo.create({
       content: dto.content,
-      channelId,
+      channelId: isChannel.length > 0 ? channelOrDmId : null,
+      dmConversationId: isChannel.length === 0 ? channelOrDmId : null,
       userId,
       threadParentId: dto.threadParentId || null,
       alsoSentToChannel: dto.alsoSentToChannel || false,
@@ -32,12 +39,12 @@ export class MessagesService {
     return result;
   }
 
-  async findByChannel(channelId: string, limit = 50, before?: Date): Promise<Message[]> {
+  async findByChannel(channelOrDmId: string, limit = 50, before?: Date): Promise<Message[]> {
     const qb = this.messageRepo
       .createQueryBuilder('m')
       .leftJoinAndSelect('m.user', 'u')
       .leftJoinAndSelect('m.files', 'f')
-      .where('m.channel_id = :channelId', { channelId })
+      .where('(m.channel_id = :id OR m.dm_conversation_id = :id)', { id: channelOrDmId })
       .andWhere('m.thread_parent_id IS NULL')
       .andWhere('m.is_deleted = false')
       .orderBy('m.created_at', 'DESC')

@@ -36,19 +36,42 @@ export class DmService {
 
   private async findExisting(workspaceId: string, userIds: string[]): Promise<DmConversation | null> {
     const sorted = [...new Set(userIds)].sort();
-    const convs = await this.convRepo.createQueryBuilder('c')
-      .innerJoin('c.participants', 'p')
-      .where('c.workspace_id = :workspaceId', { workspaceId })
-      .groupBy('c.id')
-      .having('COUNT(p.id) = :count', { count: sorted.length })
-      .getMany();
 
-    for (const conv of convs) {
-      const parts = await this.partRepo.find({ where: { conversationId: conv.id } });
-      const partIds = parts.map((p) => p.userId).sort();
-      if (JSON.stringify(partIds) === JSON.stringify(sorted)) return this.findById(conv.id);
+    // Find conversations where ALL specified users are participants
+    // and the conversation has EXACTLY that many participants (no more, no less)
+    const convIds = await this.convRepo.query(`
+      SELECT c.id FROM dm_conversations c
+      INNER JOIN dm_participants p ON p.conversation_id = c.id
+      WHERE c.workspace_id = $1
+      GROUP BY c.id
+      HAVING COUNT(p.id) = $2
+        AND COUNT(p.id) FILTER (WHERE p.user_id = ANY($3)) = $2
+    `, [workspaceId, sorted.length, sorted]);
+
+    if (convIds.length > 0) {
+      return this.findById(convIds[0].id);
     }
     return null;
+  }
+
+  async removeDuplicates(workspaceId: string): Promise<number> {
+    // Find all conversations, group by participant set, keep only the oldest
+    const allConvs = await this.convRepo.find({ where: { workspaceId }, relations: ['participants'], order: { createdAt: 'ASC' } });
+    const seen = new Map<string, string>(); // participantKey -> first convId
+    let removed = 0;
+
+    for (const conv of allConvs) {
+      const key = conv.participants.map((p) => p.userId).sort().join(',');
+      if (seen.has(key)) {
+        // Duplicate — delete this conversation
+        await this.partRepo.delete({ conversationId: conv.id });
+        await this.convRepo.delete(conv.id);
+        removed++;
+      } else {
+        seen.set(key, conv.id);
+      }
+    }
+    return removed;
   }
 
   async findById(id: string): Promise<DmConversation> {
