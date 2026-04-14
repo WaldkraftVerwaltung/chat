@@ -13,9 +13,9 @@ import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ResizeHandle } from '@/components/ui/ResizeHandle';
 
-const SIDEBAR_MIN = 180;
-const SIDEBAR_MAX = 400;
-const SIDEBAR_DEFAULT = 260;
+const SIDEBAR_MIN = 220;
+const SIDEBAR_MAX = 480;
+const SIDEBAR_DEFAULT = 340;
 
 export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
