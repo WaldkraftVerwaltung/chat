@@ -32,6 +32,30 @@ export function useKeyboardShortcuts() {
         return;
       }
 
+      // Cmd+Shift+S — Star/unstar active channel
+      if (isMod && e.shiftKey && e.key === 'S') {
+        e.preventDefault();
+        const channelsState = useChannelsStore.getState();
+        const activeChannelId = channelsState.activeChannelId;
+        if (activeChannelId) channelsState.toggleStar(activeChannelId);
+        return;
+      }
+
+      // Cmd+Shift+M — Mute/unmute active channel
+      if (isMod && e.shiftKey && e.key === 'M') {
+        e.preventDefault();
+        const activeChannelId = useChannelsStore.getState().activeChannelId;
+        if (activeChannelId) {
+          const muted: string[] = JSON.parse(localStorage.getItem('mutedConversations') || '[]');
+          const isMuted = muted.includes(activeChannelId);
+          const updated = isMuted
+            ? muted.filter((id) => id !== activeChannelId)
+            : [...muted, activeChannelId];
+          localStorage.setItem('mutedConversations', JSON.stringify(updated));
+        }
+        return;
+      }
+
       // Escape — close panels, mark active channel as read
       if (e.key === 'Escape') {
         const activeChannelId = useChannelsStore.getState().activeChannelId;
