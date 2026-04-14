@@ -90,7 +90,7 @@ export function NavRail({ activeView, onViewChange, onCompose, onCreateChannel, 
   const router = useRouter();
 
   return (
-    <div className="flex h-full w-14 flex-col items-center bg-slack-aubergine-dark py-2 border-r border-black/20">
+    <div className="flex h-full w-16 flex-col items-center bg-slack-aubergine-dark py-2 border-r border-black/20">
       {/* Workspace icon */}
       <div className="mb-3 cursor-pointer select-none">
         <img src="/workspace-logo.jpeg" alt="SOFTGAMES" className="h-9 w-9 rounded-lg object-cover" />

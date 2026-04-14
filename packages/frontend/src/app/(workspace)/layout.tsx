@@ -12,6 +12,7 @@ import { useGlobalSocket } from '@/hooks/useSocket';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ResizeHandle } from '@/components/ui/ResizeHandle';
+import { TopBar } from '@/components/layout/TopBar';
 
 const SIDEBAR_MIN = 220;
 const SIDEBAR_MAX = 480;
@@ -51,11 +52,14 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
   return (
     <ToastProvider>
       <SearchModal />
-      <div className="flex h-screen">
-        {/* NavRail (56px) + Sidebar content ({sidebarWidth}px) are rendered inside Sidebar */}
-        <Sidebar sidebarWidth={sidebarWidth} />
-        <ResizeHandle onResize={handleSidebarResize} />
-        <main className="flex-1 flex flex-col overflow-hidden">{children}</main>
+      <div className="flex flex-col h-screen">
+        <TopBar />
+        <div className="flex flex-1 overflow-hidden">
+          {/* NavRail (64px) + Sidebar content ({sidebarWidth}px) are rendered inside Sidebar */}
+          <Sidebar sidebarWidth={sidebarWidth} />
+          <ResizeHandle onResize={handleSidebarResize} />
+          <main className="flex-1 flex flex-col overflow-hidden">{children}</main>
+        </div>
       </div>
     </ToastProvider>
   );

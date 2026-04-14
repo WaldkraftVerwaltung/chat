@@ -251,7 +251,7 @@ export function Sidebar({ sidebarWidth = 208 }: SidebarProps) {
   }
 
   return (
-    <aside className="flex h-screen">
+    <aside className="flex h-full">
       <NavRail
         activeView={activeView}
         onViewChange={setActiveView}
@@ -259,7 +259,7 @@ export function Sidebar({ sidebarWidth = 208 }: SidebarProps) {
         onCreateChannel={() => setShowCreateChannel(true)}
         onCreateDm={() => { setActiveView('dms'); setShowCreateDm(true); }}
       />
-      <div className="flex h-full flex-col bg-slack-aubergine" style={{ width: sidebarWidth }}>
+      <div className="flex h-full flex-col bg-slack-aubergine overflow-hidden" style={{ width: sidebarWidth }}>
         {/* Header — shown for all views except home (home renders its own workspace header) */}
         {activeView !== 'home' && (
           <div className="flex items-center gap-2 border-b border-slack-aubergine-light px-3 py-3">
