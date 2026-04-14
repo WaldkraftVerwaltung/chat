@@ -3,11 +3,13 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useDmsStore } from '@/stores/dms.store';
 import { useAuthStore } from '@/stores/auth.store';
+import { usePresenceStore } from '@/stores/presence.store';
 import { apiFetch } from '@/lib/api';
 
 export function DmList() {
   const { conversations, fetchConversations, startDm } = useDmsStore();
   const currentUserId = useAuthStore((s) => s.user?.id);
+  const presenceMap = usePresenceStore((s) => s.presenceMap);
   const [showNewDm, setShowNewDm] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
 
@@ -40,13 +42,18 @@ export function DmList() {
         <button onClick={openUserPicker} className="text-slack-text hover:text-slack-text-bright text-lg leading-none" title="Neue DM">+</button>
       </div>
 
-      {conversations.map((conv) => (
-        <Link key={conv.id} href={`/dm/${conv.id}`}
-          className="flex items-center gap-2 rounded px-3 py-1 text-sm text-slack-text hover:bg-slack-aubergine-light hover:text-slack-text-bright transition-colors">
-          <span className="h-2 w-2 rounded-full bg-green-400" />
-          <span className="truncate">{getDmName(conv)}</span>
-        </Link>
-      ))}
+      {conversations.map((conv) => {
+        const otherId = conv.participants?.find((p: any) => p.userId !== currentUserId)?.userId;
+        const presence = otherId ? (presenceMap[otherId] || 'away') : 'away';
+        const presenceColor = { active: 'bg-green-500', away: 'bg-gray-400', dnd: 'bg-red-500' }[presence];
+        return (
+          <Link key={conv.id} href={`/dm/${conv.id}`}
+            className="flex items-center gap-2 rounded px-3 py-1 text-sm text-slack-text hover:bg-slack-aubergine-light hover:text-slack-text-bright transition-colors">
+            <span className={`h-2 w-2 rounded-full ${presenceColor}`} />
+            <span className="truncate">{getDmName(conv)}</span>
+          </Link>
+        );
+      })}
 
       {showNewDm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowNewDm(false)}>

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ReactionBar } from './ReactionBar';
 import { FilePreview } from './FilePreview';
 import { EmojiPicker } from './EmojiPicker';
@@ -64,6 +64,18 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
   const currentUser = useAuthStore((s) => s.user);
   const isOwn = currentUser?.id === (message.userId || message.user?.id);
 
+  // Listen for arrow-up edit-message event
+  useEffect(() => {
+    const handler = (e: CustomEvent) => {
+      if (e.detail.messageId === message.id) {
+        setIsEditing(true);
+        setEditContent(message.content);
+      }
+    };
+    window.addEventListener('edit-message', handler as EventListener);
+    return () => window.removeEventListener('edit-message', handler as EventListener);
+  }, [message.id, message.content]);
+
   // Deleted message
   if (message.isDeleted) {
     return (
@@ -115,6 +127,7 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
   }
 
   function handleDelete() {
+    if (!window.confirm('Nachricht endgueltig loeschen?')) return;
     try {
       getSocket().emit('message:delete', { messageId: message.id, channelId });
       useMessagesStore.getState().removeMessage(channelId, message.id);
@@ -138,6 +151,12 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
 
   function handleForward() {
     handleCopyText();
+  }
+
+  async function handleSave() {
+    try {
+      await apiFetch('/saved-items', { method: 'POST', body: JSON.stringify({ messageId: message.id }) });
+    } catch {}
   }
 
   function handleRemind(minutes: number) {
@@ -264,6 +283,7 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
             <ActionButton icon="&#128512;" title="Reaktion hinzufuegen" onClick={() => setShowEmojiPicker(!showEmojiPicker)} />
             <ActionButton icon="&#128172;" title="Im Thread antworten" onClick={handleOpenThread} />
             <ActionButton icon="&#128204;" title={message.isPinned ? 'Losloesung aufheben' : 'Anpinnen'} onClick={handlePin} />
+            <ActionButton icon="&#128278;" title="Speichern" onClick={handleSave} />
             {isOwn && (
               <ActionButton icon="&#9998;" title="Bearbeiten" onClick={() => { setIsEditing(true); setEditContent(message.content); }} />
             )}

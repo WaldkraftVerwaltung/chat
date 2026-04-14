@@ -3,6 +3,8 @@ import { useState, useRef, KeyboardEvent, useEffect, useCallback } from 'react';
 import { getSocket } from '@/lib/socket';
 import { apiFetch } from '@/lib/api';
 import { EmojiPicker } from './EmojiPicker';
+import { useMessagesStore } from '@/stores/messages.store';
+import { useAuthStore } from '@/stores/auth.store';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -21,6 +23,7 @@ export function MessageInput({ channelId, threadParentId }: { channelId: string;
   const [content, setContent] = useState('');
   const [pendingFile, setPendingFile] = useState<{ id: string; originalFilename: string; mimeType: string; sizeBytes: number; thumbnailKey: string | null } | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [sendError, setSendError] = useState(false);
   const [showFormatBar, setShowFormatBar] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
@@ -94,7 +97,17 @@ export function MessageInput({ channelId, threadParentId }: { channelId: string;
       }
       if (e.key === 'Escape') { setChannelQuery(null); return; }
     }
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); return; }
+    // Arrow-up on empty input: edit last own message
+    if (e.key === 'ArrowUp' && !content.trim()) {
+      e.preventDefault();
+      const msgs = useMessagesStore.getState().messagesByChannel[channelId] || [];
+      const userId = useAuthStore.getState().user?.id;
+      const lastOwn = [...msgs].reverse().find((m) => m.userId === userId && !m.isDeleted);
+      if (lastOwn) {
+        window.dispatchEvent(new CustomEvent('edit-message', { detail: { messageId: lastOwn.id } }));
+      }
+    }
   }
 
   function insertMention(member: ChannelMember) {
@@ -138,15 +151,20 @@ export function MessageInput({ channelId, threadParentId }: { channelId: string;
   function sendMessage() {
     const text = content.trim();
     if (!text && !pendingFile) return;
-    getSocket().emit('message:send', { channelId, content: text || ' ', fileIds: pendingFile ? [pendingFile.id] : [], threadParentId });
-    setContent('');
-    setPendingFile(null);
-    textareaRef.current?.focus();
-    clearTimeout(draftTimeout.current);
-    apiFetch('/drafts', {
-      method: 'PUT',
-      body: JSON.stringify({ channelId, threadParentId: threadParentId || undefined, content: '' }),
-    }).catch(() => {});
+    try {
+      getSocket().emit('message:send', { channelId, content: text || ' ', fileIds: pendingFile ? [pendingFile.id] : [], threadParentId });
+      setContent('');
+      setPendingFile(null);
+      setSendError(false);
+      textareaRef.current?.focus();
+      clearTimeout(draftTimeout.current);
+      apiFetch('/drafts', {
+        method: 'PUT',
+        body: JSON.stringify({ channelId, threadParentId: threadParentId || undefined, content: '' }),
+      }).catch(() => {});
+    } catch {
+      setSendError(true);
+    }
   }
 
   function handleInput(value: string) {
@@ -261,6 +279,13 @@ export function MessageInput({ channelId, threadParentId }: { channelId: string;
 
   return (
     <div className="border-t border-slack-border bg-white px-5 py-3">
+      {/* Send error toast */}
+      {sendError && (
+        <div className="mb-2 flex items-center gap-2 rounded border border-red-200 bg-red-50 px-3 py-1.5 text-sm text-red-700">
+          <span>Nachricht konnte nicht gesendet werden.</span>
+          <button onClick={() => setSendError(false)} className="ml-auto text-red-500 hover:text-red-700">&#x2715;</button>
+        </div>
+      )}
       {/* File preview */}
       {pendingFile && (
         <div className="mb-2 flex items-center gap-2 rounded border border-slack-border bg-gray-50 px-3 py-1.5 text-sm">

@@ -34,14 +34,19 @@ export function MessageList({ channelId }: { channelId: string }) {
   const messages = useMessagesStore((s) => s.messagesByChannel[channelId] || []);
   const fetchMessages = useMessagesStore((s) => s.fetchMessages);
   const loading = useMessagesStore((s) => s.loading);
+  const loadingMore = useMessagesStore((s) => s.loadingMore);
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [unreadWhileScrolled, setUnreadWhileScrolled] = useState(0);
+  const [fetchError, setFetchError] = useState(false);
   const prevLengthRef = useRef(messages.length);
   const isAtBottomRef = useRef(true);
 
-  useEffect(() => { fetchMessages(channelId); }, [channelId, fetchMessages]);
+  useEffect(() => {
+    setFetchError(false);
+    fetchMessages(channelId).catch(() => setFetchError(true));
+  }, [channelId, fetchMessages]);
 
   // Scroll to bottom on initial load or when new messages arrive while at bottom
   useEffect(() => {
@@ -66,11 +71,29 @@ export function MessageList({ channelId }: { channelId: string }) {
     isAtBottomRef.current = atBottom;
     setShowScrollBtn(!atBottom);
     if (atBottom) setUnreadWhileScrolled(0);
-  }, []);
+    // Load older messages when scrolled to top
+    if (el.scrollTop === 0 && messages.length > 0 && !loadingMore) {
+      fetchMessages(channelId, messages[0].createdAt);
+    }
+  }, [channelId, fetchMessages, loadingMore, messages]);
 
   function scrollToBottom() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     setUnreadWhileScrolled(0);
+  }
+
+  if (fetchError) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
+        <p className="text-sm text-gray-500 mb-3">Nachrichten konnten nicht geladen werden.</p>
+        <button
+          onClick={() => { setFetchError(false); fetchMessages(channelId).catch(() => setFetchError(true)); }}
+          className="rounded bg-slack-green px-3 py-1.5 text-sm text-white hover:bg-slack-green-hover"
+        >
+          Erneut versuchen
+        </button>
+      </div>
+    );
   }
 
   if (loading && messages.length === 0) return <div className="flex-1 flex items-center justify-center text-gray-400">Laden...</div>;
@@ -89,6 +112,9 @@ export function MessageList({ channelId }: { channelId: string }) {
     <div className="relative flex-1 overflow-hidden">
       <div ref={scrollRef} className="h-full overflow-y-auto" onScroll={handleScroll}>
         <div className="py-4">
+          {loadingMore && (
+            <div className="flex items-center justify-center py-2 text-xs text-gray-400">Aeltere Nachrichten werden geladen...</div>
+          )}
           {messages.map((msg, i) => {
             const prev = i > 0 ? messages[i - 1] : null;
             const showDateSep = !prev || new Date(msg.createdAt).toDateString() !== new Date(prev.createdAt).toDateString();

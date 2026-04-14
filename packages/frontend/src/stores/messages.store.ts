@@ -13,7 +13,8 @@ interface Message {
 interface MessagesState {
   messagesByChannel: Record<string, Message[]>;
   loading: boolean;
-  fetchMessages: (channelId: string) => Promise<void>;
+  loadingMore: boolean;
+  fetchMessages: (channelId: string, before?: string) => Promise<void>;
   addMessage: (channelId: string, message: Message) => void;
   updateMessage: (messageId: string, updates: Partial<Message>) => void;
   removeMessage: (channelId: string, messageId: string) => void;
@@ -22,12 +23,30 @@ interface MessagesState {
 export const useMessagesStore = create<MessagesState>((set) => ({
   messagesByChannel: {},
   loading: false,
-  fetchMessages: async (channelId) => {
-    set({ loading: true });
-    try {
-      const messages = await apiFetch<Message[]>(`/channels/${channelId}/messages`);
-      set((s) => ({ messagesByChannel: { ...s.messagesByChannel, [channelId]: messages }, loading: false }));
-    } catch { set({ loading: false }); }
+  loadingMore: false,
+  fetchMessages: async (channelId, before?: string) => {
+    if (before) {
+      set({ loadingMore: true });
+      try {
+        const older = await apiFetch<Message[]>(`/channels/${channelId}/messages?limit=50&before=${encodeURIComponent(before)}`);
+        set((s) => {
+          const existing = s.messagesByChannel[channelId] || [];
+          // Deduplicate: only prepend messages not already present
+          const existingIds = new Set(existing.map((m) => m.id));
+          const newOlder = older.filter((m) => !existingIds.has(m.id));
+          return {
+            messagesByChannel: { ...s.messagesByChannel, [channelId]: [...newOlder, ...existing] },
+            loadingMore: false,
+          };
+        });
+      } catch { set({ loadingMore: false }); }
+    } else {
+      set({ loading: true });
+      try {
+        const messages = await apiFetch<Message[]>(`/channels/${channelId}/messages?limit=50`);
+        set((s) => ({ messagesByChannel: { ...s.messagesByChannel, [channelId]: messages }, loading: false }));
+      } catch { set({ loading: false }); }
+    }
   },
   addMessage: (channelId, message) => set((s) => {
     const existing = s.messagesByChannel[channelId] || [];

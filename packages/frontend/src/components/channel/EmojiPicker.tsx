@@ -93,17 +93,26 @@ export function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
       {/* Emoji grid */}
       <div className="h-56 overflow-y-auto p-2">
         {search ? (
-          <div className="grid grid-cols-8 gap-0.5">
-            {allEmojis.map((emoji, i) => (
-              <button
-                key={`${emoji}-${i}`}
-                onClick={() => handleSelect(emoji)}
-                className="rounded p-1 text-xl hover:bg-slack-msg-hover transition-colors flex items-center justify-center"
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
+          (() => {
+            const filteredEmojis = allEmojis.filter((emoji) => emoji.includes(search));
+            return filteredEmojis.length > 0 ? (
+              <div className="grid grid-cols-8 gap-0.5">
+                {filteredEmojis.map((emoji, i) => (
+                  <button
+                    key={`${emoji}-${i}`}
+                    onClick={() => handleSelect(emoji)}
+                    className="rounded p-1 text-xl hover:bg-slack-msg-hover transition-colors flex items-center justify-center"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="flex h-full items-center justify-center text-sm text-slack-gray-text">
+                Kein Emoji gefunden
+              </div>
+            );
+          })()
         ) : (
           <>
             {categoryKeys.map((cat) => {

@@ -45,11 +45,9 @@ export function ReactionBar({ messageId, channelId, reactions }: ReactionBarProp
               <span>{r.count}</span>
             </button>
             {/* Tooltip */}
-            {hoveredEmoji === r.emoji && r.userIds.length > 0 && (
+            {hoveredEmoji === r.emoji && r.count > 0 && (
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-xs text-white shadow-lg z-20 pointer-events-none">
-                {r.userIds.length <= 3
-                  ? r.userIds.join(', ')
-                  : `${r.userIds.slice(0, 2).join(', ')} und ${r.userIds.length - 2} weitere`}
+                {`${r.count} Reaktion${r.count > 1 ? 'en' : ''}`}
                 <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
               </div>
             )}
