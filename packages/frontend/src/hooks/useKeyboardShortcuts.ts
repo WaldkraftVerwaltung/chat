@@ -2,6 +2,8 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSearchStore } from '@/stores/search.store';
+import { useChannelsStore } from '@/stores/channels.store';
+import { getSocket } from '@/lib/socket';
 
 export function useKeyboardShortcuts() {
   const router = useRouter();
@@ -30,9 +32,12 @@ export function useKeyboardShortcuts() {
         return;
       }
 
-      // Escape — close panels, mark channel as read
+      // Escape — close panels, mark active channel as read
       if (e.key === 'Escape') {
-        // SearchModal handles its own Escape
+        const activeChannelId = useChannelsStore.getState().activeChannelId;
+        if (activeChannelId) {
+          getSocket().emit('mark:read', { channelId: activeChannelId });
+        }
       }
     }
 

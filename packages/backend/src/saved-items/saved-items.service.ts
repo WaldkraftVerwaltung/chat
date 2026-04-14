@@ -34,4 +34,15 @@ export class SavedItemsService {
   async unsave(id: string, userId: string): Promise<void> {
     await this.savedItemRepo.delete({ id, userId });
   }
+
+  async setReminder(userId: string, messageId: string, minutes: number): Promise<SavedItem> {
+    const remindAt = new Date(Date.now() + minutes * 60 * 1000);
+    let item = await this.savedItemRepo.findOne({ where: { userId, messageId } });
+    if (item) {
+      item.remindAt = remindAt;
+      return this.savedItemRepo.save(item);
+    }
+    item = this.savedItemRepo.create({ userId, messageId, status: 'in_progress', remindAt });
+    return this.savedItemRepo.save(item);
+  }
 }

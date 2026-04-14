@@ -11,6 +11,7 @@ import { MentionDetectorService } from '../notifications/mention-detector.servic
 import { ChannelsService } from '../channels/channels.service';
 import { PresenceService } from '../presence/presence.service';
 import { UserGroupsService } from '../user-groups/user-groups.service';
+import { SavedItemsService } from '../saved-items/saved-items.service';
 import { Presence } from '@chat/shared';
 
 @WebSocketGateway({ cors: { origin: '*', credentials: true }, namespace: '/' })
@@ -29,6 +30,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private channelsService: ChannelsService,
     private presenceService: PresenceService,
     private userGroupsService: UserGroupsService,
+    private savedItemsService: SavedItemsService,
   ) {}
 
   async handleConnection(socket: Socket) {
@@ -201,6 +203,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!user) return;
     await this.presenceService.setPresence(user.id, data.presence as any);
     this.server.emit('presence:update', { userId: user.id, presence: data.presence });
+  }
+
+  @SubscribeMessage('message:remind')
+  async handleRemind(@ConnectedSocket() socket: Socket, @MessageBody() data: { messageId: string; minutes: number }) {
+    const user = socket.data.user;
+    if (!user) return;
+    try {
+      await this.savedItemsService.setReminder(user.id, data.messageId, data.minutes);
+      socket.emit('remind:set', { messageId: data.messageId, minutes: data.minutes });
+    } catch {
+      // ignore
+    }
   }
 
   emitToUser(userId: string, event: string, data: any) {
