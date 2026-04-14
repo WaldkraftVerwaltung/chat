@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ChannelList } from './ChannelList';
 import { DmList } from './DmList';
 import { NavRail, NavView } from './NavRail';
@@ -92,6 +93,7 @@ interface SidebarProps {
 
 export function Sidebar({ sidebarWidth = 208 }: SidebarProps) {
   const user = useAuthStore((s) => s.user);
+  const router = useRouter();
   const [activeView, setActiveView] = useState<NavView>('home');
   const [showCreateChannel, setShowCreateChannel] = useState(false);
   const [showCreateDm, setShowCreateDm] = useState(false);
@@ -172,7 +174,7 @@ export function Sidebar({ sidebarWidth = 208 }: SidebarProps) {
                   className="flex items-center gap-1 text-slack-text-bright font-bold text-base truncate max-w-[120px] hover:text-white"
                   onClick={() => setShowWorkspaceMenu((v) => !v)}
                 >
-                  Waldkraft Chat
+                  SOFTGAMES
                   <span className="text-xs text-slack-text">▾</span>
                 </button>
                 <div className="flex items-center gap-1 flex-shrink-0">
@@ -207,16 +209,16 @@ export function Sidebar({ sidebarWidth = 208 }: SidebarProps) {
 
             {/* Quick nav sections */}
             <div className="px-1 py-1 space-y-0.5">
-              <button className="flex items-center gap-2 w-full rounded px-3 py-1.5 text-sm text-slack-text hover:bg-slack-aubergine-light hover:text-white transition-colors">
+              <button onClick={() => router.push('/threads')} className="flex items-center gap-2 w-full rounded px-3 py-1.5 text-sm text-slack-text hover:bg-slack-aubergine-light hover:text-white transition-colors">
                 <span>🧵</span> Threads
               </button>
-              <button className="flex items-center gap-2 w-full rounded px-3 py-1.5 text-sm text-slack-text hover:bg-slack-aubergine-light hover:text-white transition-colors">
+              <button onClick={() => router.push('/huddles')} className="flex items-center gap-2 w-full rounded px-3 py-1.5 text-sm text-slack-text hover:bg-slack-aubergine-light hover:text-white transition-colors">
                 <span>🎧</span> Huddles
               </button>
-              <button className="flex items-center gap-2 w-full rounded px-3 py-1.5 text-sm text-slack-text hover:bg-slack-aubergine-light hover:text-white transition-colors">
+              <button onClick={() => router.push('/drafts')} className="flex items-center gap-2 w-full rounded px-3 py-1.5 text-sm text-slack-text hover:bg-slack-aubergine-light hover:text-white transition-colors">
                 <span>▷</span> Entwuerfe &amp; Gesendet
               </button>
-              <button className="flex items-center gap-2 w-full rounded px-3 py-1.5 text-sm text-slack-text hover:bg-slack-aubergine-light hover:text-white transition-colors">
+              <button onClick={() => router.push('/directory')} className="flex items-center gap-2 w-full rounded px-3 py-1.5 text-sm text-slack-text hover:bg-slack-aubergine-light hover:text-white transition-colors">
                 <span>📖</span> Verzeichnisse
               </button>
             </div>

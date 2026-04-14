@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useNotificationsStore } from '@/stores/notifications.store';
 import { CreateMenu } from './CreateMenu';
 
@@ -79,15 +80,20 @@ const NAV_ITEMS: { id: NavView; label: string; icon: React.ReactNode }[] = [
   },
 ];
 
+const NAV_ROUTES: Partial<Record<NavView, string>> = {
+  threads: '/threads',
+};
+
 export function NavRail({ activeView, onViewChange, onCompose, onCreateChannel, onCreateDm }: NavRailProps) {
   const unreadCount = useNotificationsStore((s) => s.unreadCount);
   const [showCreateMenu, setShowCreateMenu] = useState(false);
+  const router = useRouter();
 
   return (
     <div className="flex h-full w-14 flex-col items-center bg-slack-aubergine-dark py-2 border-r border-black/20">
       {/* Workspace icon */}
-      <div className="mb-3 h-9 w-9 rounded-lg bg-white/20 flex items-center justify-center text-white text-sm font-bold cursor-pointer hover:bg-white/30 transition-colors select-none">
-        W
+      <div className="mb-3 cursor-pointer select-none">
+        <img src="/workspace-logo.jpeg" alt="SOFTGAMES" className="h-9 w-9 rounded-lg object-cover" />
       </div>
 
       {/* Nav items */}
@@ -95,7 +101,13 @@ export function NavRail({ activeView, onViewChange, onCompose, onCreateChannel, 
         {NAV_ITEMS.map((item) => (
           <button
             key={item.id}
-            onClick={() => onViewChange(item.id)}
+            onClick={() => {
+              if (NAV_ROUTES[item.id]) {
+                router.push(NAV_ROUTES[item.id]!);
+              } else {
+                onViewChange(item.id);
+              }
+            }}
             title={item.label}
             className={`relative flex flex-col items-center justify-center w-full py-1.5 rounded-lg text-xs transition-colors ${
               activeView === item.id
