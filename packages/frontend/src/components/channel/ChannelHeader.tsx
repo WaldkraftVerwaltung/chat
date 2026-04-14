@@ -5,6 +5,7 @@ import { apiFetch } from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
 import { useAuthStore } from '@/stores/auth.store';
 import { useSearchStore } from '@/stores/search.store';
+import { InviteLinkDialog } from './InviteLinkDialog';
 
 interface ChannelHeaderProps {
   channelId: string;
@@ -22,6 +23,7 @@ interface ChannelHeaderProps {
 
 export function ChannelHeader({ channelId, name, topic, type, memberCount, isStarred, onToggleStar, onToggleDetails, onToggleMembers, onTogglePins, onOpenSettings }: ChannelHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { addToast } = useToast();
@@ -72,6 +74,7 @@ export function ChannelHeader({ channelId, name, topic, type, memberCount, isSta
   }
 
   return (
+    <>
     <header className="flex items-center gap-3 border-b bg-white px-5 py-3">
       <span className="text-gray-400 text-lg">{type === 'public' ? '#' : '\uD83D\uDD12'}</span>
       <div className="min-w-0 flex-1">
@@ -212,6 +215,14 @@ export function ChannelHeader({ channelId, name, topic, type, memberCount, isSta
                 Einstellungen bearbeiten
               </button>
 
+              {/* Einladungslink */}
+              <button
+                onClick={() => { setShowInviteDialog(true); closeMenu(); }}
+                className="w-full text-left px-4 py-2 text-sm text-gray-900 hover:bg-gray-50 flex items-center"
+              >
+                Einladungslink generieren
+              </button>
+
               <div className="border-t border-gray-100 my-1" />
 
               {/* Kopieren */}
@@ -281,5 +292,14 @@ export function ChannelHeader({ channelId, name, topic, type, memberCount, isSta
         </div>
       </div>
     </header>
+
+    {showInviteDialog && (
+      <InviteLinkDialog
+        channelId={channelId}
+        channelName={name}
+        onClose={() => setShowInviteDialog(false)}
+      />
+    )}
+  </>
   );
 }
