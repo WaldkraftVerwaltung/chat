@@ -30,12 +30,11 @@ export class SearchService implements OnModuleInit {
         apiKey: this.config.get<string>('meilisearch.key'),
       });
 
-      // Create index if it doesn't exist
-      try {
-        await this.client.createIndex('messages', { primaryKey: 'id' });
-      } catch {} // Index may already exist
-
+      // Get or create index
       this.messagesIndex = this.client.index('messages');
+      try {
+        await (this.client as any).createIndex?.('messages', { primaryKey: 'id' });
+      } catch {} // Index may already exist, or method may not exist
 
       await this.messagesIndex.updateFilterableAttributes([
         'channelId', 'userId', 'isPinned', 'hasFile', 'hasLink', 'createdAt',
