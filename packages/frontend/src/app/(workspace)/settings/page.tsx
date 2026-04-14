@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-type SettingsSection = 'navigation' | 'home' | 'appearance' | 'notifications' | 'language' | 'accessibility' | 'read-status' | 'audio-video' | 'privacy' | 'advanced';
+type SettingsSection = 'navigation' | 'home' | 'appearance' | 'notifications' | 'language' | 'accessibility' | 'read-status' | 'audio-video' | 'privacy' | 'advanced' | 'shortcuts';
 
 const SECTIONS: { id: SettingsSection; label: string; icon: string }[] = [
   { id: 'notifications', label: 'Benachrichtigungen', icon: '🔔' },
@@ -16,6 +16,7 @@ const SECTIONS: { id: SettingsSection; label: string; icon: string }[] = [
   { id: 'audio-video', label: 'Audio und Video', icon: '🎥' },
   { id: 'privacy', label: 'Datenschutz und Transparenz', icon: '🔒' },
   { id: 'advanced', label: 'Erweitert', icon: '⚙️' },
+  { id: 'shortcuts', label: 'Tastenkuerzel', icon: '⌨️' },
 ];
 
 export default function SettingsPage() {
@@ -54,6 +55,7 @@ export default function SettingsPage() {
         {activeSection === 'notifications' && <NotificationSettings />}
         {activeSection === 'accessibility' && <AccessibilitySettings />}
         {activeSection === 'advanced' && <AdvancedSettings />}
+        {activeSection === 'shortcuts' && <KeyboardShortcuts />}
       </div>
     </div>
   );
@@ -250,6 +252,81 @@ function AdvancedSettings() {
           </div>
           <input type="checkbox" defaultChecked className="w-5 h-5 rounded" />
         </label>
+      </div>
+    </div>
+  );
+}
+
+function KeyboardShortcuts() {
+  const isMac = typeof navigator !== 'undefined' && navigator.platform.includes('Mac');
+  const mod = isMac ? '⌘' : 'Strg';
+
+  const groups = [
+    {
+      title: 'Navigation',
+      shortcuts: [
+        { keys: [`${mod}K`], description: 'Schnellwechsler / Suche oeffnen' },
+        { keys: [`${mod},`], description: 'Persoenliche Einstellungen' },
+        { keys: [`${mod}Shift+J`], description: 'Downloads anzeigen' },
+        { keys: ['Esc'], description: 'Panel schliessen / Suche schliessen' },
+      ],
+    },
+    {
+      title: 'Nachrichten',
+      shortcuts: [
+        { keys: ['Enter'], description: 'Nachricht senden' },
+        { keys: ['Shift+Enter'], description: 'Neue Zeile' },
+        { keys: ['↑'], description: 'Letzte eigene Nachricht bearbeiten' },
+        { keys: ['Esc'], description: 'Bearbeitung abbrechen' },
+        { keys: [`${mod}Z`], description: 'Letzte Nachricht rueckgaengig machen (15s)' },
+      ],
+    },
+    {
+      title: 'Formatierung',
+      shortcuts: [
+        { keys: [`${mod}B`], description: 'Fett' },
+        { keys: [`${mod}I`], description: 'Kursiv' },
+        { keys: [`${mod}Shift+X`], description: 'Durchgestrichen' },
+        { keys: [`${mod}Shift+C`], description: 'Code' },
+      ],
+    },
+    {
+      title: 'In Channels',
+      shortcuts: [
+        { keys: [`${mod}Shift+M`], description: 'Kanal stummschalten / Stummschaltung aufheben' },
+        { keys: [`${mod}Shift+S`], description: 'Stern zum Kanal hinzufuegen' },
+      ],
+    },
+  ];
+
+  return (
+    <div className="max-w-xl">
+      <h2 className="text-base font-bold text-gray-900 mb-1">Tastenkuerzel</h2>
+      <p className="text-sm text-gray-500 mb-6">Alle verfuegbaren Tastenkombinationen auf einen Blick.</p>
+
+      <div className="space-y-6">
+        {groups.map((group) => (
+          <div key={group.title}>
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{group.title}</h3>
+            <div className="rounded-lg border border-gray-200 overflow-hidden">
+              {group.shortcuts.map((shortcut, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between px-4 py-2.5 border-b border-gray-100 last:border-0 hover:bg-gray-50"
+                >
+                  <span className="text-sm text-gray-700">{shortcut.description}</span>
+                  <div className="flex items-center gap-1 flex-shrink-0 ml-4">
+                    {shortcut.keys.map((key) => (
+                      <kbd key={key} className="px-2 py-0.5 text-xs font-mono bg-gray-100 border border-gray-300 rounded text-gray-600 whitespace-nowrap">
+                        {key}
+                      </kbd>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
