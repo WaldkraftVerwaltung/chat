@@ -38,39 +38,38 @@ export class ChannelsService {
   }
 
   async browse(workspaceId: string, userId: string, search?: string): Promise<any[]> {
-    let query = this.channelRepo
-      .createQueryBuilder('c')
-      .select([
-        'c.id', 'c.name', 'c.type', 'c.topic', 'c.description', 'c.isDefault', 'c.createdAt',
-      ])
-      .addSelect('COUNT(cm.user_id)::int', 'memberCount')
-      .addSelect(
-        `BOOL_OR(cm.user_id = :userId)`,
-        'isMember',
-      )
-      .leftJoin('channel_members', 'cm', 'cm.channel_id = c.id')
-      .where('c.workspace_id = :workspaceId', { workspaceId })
-      .andWhere('c.is_archived = false')
-      .andWhere('c.type = :public', { public: ChannelType.PUBLIC })
-      .setParameter('userId', userId)
-      .groupBy('c.id')
-      .orderBy('c.name', 'ASC');
+    const searchFilter = search ? `AND c.name ILIKE $3` : '';
+    const params: any[] = [workspaceId, userId];
+    if (search) params.push(`%${search}%`);
 
-    if (search) {
-      query = query.andWhere('c.name ILIKE :search', { search: `%${search}%` });
-    }
+    const rows = await this.channelRepo.query(`
+      SELECT
+        c.id,
+        c.name,
+        c.type,
+        c.topic,
+        c.description,
+        c.is_default as "isDefault",
+        c.created_at as "createdAt",
+        COUNT(cm.user_id)::int as "memberCount",
+        EXISTS(
+          SELECT 1 FROM channel_members cm2
+          WHERE cm2.channel_id = c.id AND cm2.user_id = $2
+        ) as "isMember"
+      FROM channels c
+      LEFT JOIN channel_members cm ON cm.channel_id = c.id
+      WHERE c.workspace_id = $1
+        AND c.is_archived = false
+        AND c.type = 'public'
+        ${searchFilter}
+      GROUP BY c.id
+      ORDER BY c.name ASC
+    `, params);
 
-    const rows = await query.getRawMany();
-    return rows.map((r) => ({
-      id: r.c_id,
-      name: r.c_name,
-      type: r.c_type,
-      topic: r.c_topic,
-      description: r.c_description,
-      isDefault: r.c_is_default,
-      createdAt: r.c_created_at,
-      memberCount: r.memberCount ?? 0,
-      isMember: r.isMember ?? false,
+    return rows.map((r: any) => ({
+      ...r,
+      memberCount: Number(r.memberCount) || 0,
+      isMember: r.isMember === true || r.isMember === 't',
     }));
   }
 
