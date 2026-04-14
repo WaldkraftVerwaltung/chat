@@ -6,6 +6,7 @@ import { MessageInput } from '@/components/channel/MessageInput';
 import { TypingIndicator } from '@/components/channel/TypingIndicator';
 import { ThreadPanel } from '@/components/channel/ThreadPanel';
 import { DmHeaderMenu } from '@/components/channel/DmHeaderMenu';
+import { MuteButton } from '@/components/channel/MuteButton';
 import { useDmsStore } from '@/stores/dms.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { usePresenceStore } from '@/stores/presence.store';
@@ -91,14 +92,8 @@ export default function DmPage() {
 
         {/* Header toolbar icons */}
         <div className="flex items-center gap-0.5 ml-auto">
-          {/* Huddle */}
-          <button title="Huddle starten" className="p-2 rounded hover:bg-slack-msg-hover text-slack-gray-text">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
-          </button>
-          {/* Notification */}
-          <button title="Benachrichtigungen" className="p-2 rounded hover:bg-slack-msg-hover text-slack-gray-text">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-          </button>
+          {/* Mute/Unmute notifications */}
+          <MuteButton conversationId={dmId} />
           {/* Search */}
           <button onClick={() => useSearchStore.getState().open()} title="Suchen" className="p-2 rounded hover:bg-slack-msg-hover text-slack-gray-text">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
