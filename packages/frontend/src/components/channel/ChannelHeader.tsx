@@ -16,9 +16,10 @@ interface ChannelHeaderProps {
   onToggleStar?: () => void;
   onToggleDetails?: () => void;
   onToggleMembers?: () => void;
+  onTogglePins?: () => void;
 }
 
-export function ChannelHeader({ channelId, name, topic, type, memberCount, isStarred, onToggleStar, onToggleDetails, onToggleMembers }: ChannelHeaderProps) {
+export function ChannelHeader({ channelId, name, topic, type, memberCount, isStarred, onToggleStar, onToggleDetails, onToggleMembers, onTogglePins }: ChannelHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -108,7 +109,7 @@ export function ChannelHeader({ channelId, name, topic, type, memberCount, isSta
         </button>
 
         {/* Pin */}
-        <button title="Angepinnte Nachrichten" className="p-2 rounded hover:bg-gray-100 transition-colors text-gray-400">
+        <button title="Angepinnte Nachrichten" onClick={onTogglePins} className="p-2 rounded hover:bg-gray-100 transition-colors text-gray-400">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
           </svg>

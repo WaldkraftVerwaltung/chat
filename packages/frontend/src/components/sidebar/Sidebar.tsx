@@ -139,13 +139,22 @@ export function Sidebar({ sidebarWidth = 208 }: SidebarProps) {
               <h2 className="text-sm font-semibold text-slack-text-bright mb-2">Mehr</h2>
               <div className="space-y-1">
                 <Link
-                  href="/admin"
+                  href="/directory"
                   className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-slack-text hover:bg-slack-aubergine-light hover:text-slack-text-bright transition-colors"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                   Personen
+                </Link>
+                <Link
+                  href="/files"
+                  className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-slack-text hover:bg-slack-aubergine-light hover:text-slack-text-bright transition-colors"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                  </svg>
+                  Dateien
                 </Link>
                 {user?.role && ['primary_owner', 'owner', 'admin'].includes(user.role) && (
                   <Link
@@ -220,6 +229,9 @@ export function Sidebar({ sidebarWidth = 208 }: SidebarProps) {
               </button>
               <button onClick={() => router.push('/directory')} className="flex items-center gap-2 w-full rounded px-3 py-1.5 text-sm text-slack-text hover:bg-slack-aubergine-light hover:text-white transition-colors">
                 <span>📖</span> Verzeichnisse
+              </button>
+              <button onClick={() => router.push('/files')} className="flex items-center gap-2 w-full rounded px-3 py-1.5 text-sm text-slack-text hover:bg-slack-aubergine-light hover:text-white transition-colors">
+                <span>📁</span> Dateien
               </button>
             </div>
 

@@ -24,7 +24,7 @@ export default function ChannelPage() {
   const channel = channels.find((c) => c.id === channelId);
   const activeThreadId = useThreadsStore((s) => s.activeThreadId);
   const [showDetails, setShowDetails] = useState(false);
-  const [detailsTab, setDetailsTab] = useState<'about' | 'members'>('about');
+  const [detailsTab, setDetailsTab] = useState<'about' | 'members' | 'pins'>('about');
   const [memberCount, setMemberCount] = useState<number | undefined>(undefined);
   const [threadWidth, setThreadWidth] = useState(THREAD_DEFAULT);
 
@@ -45,7 +45,7 @@ export default function ChannelPage() {
 
   if (!channel) return <div className="flex flex-1 items-center justify-center text-gray-400">Channel wird geladen...</div>;
 
-  function openDetails(tab: 'about' | 'members' = 'about') {
+  function openDetails(tab: 'about' | 'members' | 'pins' = 'about') {
     setDetailsTab(tab);
     setShowDetails(true);
   }
@@ -65,6 +65,7 @@ export default function ChannelPage() {
             if (showDetails) { setShowDetails(false); } else { openDetails('about'); }
           }}
           onToggleMembers={() => openDetails('members')}
+          onTogglePins={() => openDetails('pins')}
         />
         <MessageList channelId={channelId} />
         <TypingIndicator channelId={channelId} />

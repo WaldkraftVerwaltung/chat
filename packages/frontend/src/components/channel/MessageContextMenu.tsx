@@ -16,12 +16,13 @@ interface MessageContextMenuProps {
   onDelete?: () => void;
   onForward: () => void;
   onRemind: (minutes: number) => void;
+  onSave: () => void;
 }
 
 export function MessageContextMenu({
   x, y, isOwn, isPinned, onClose,
   onReplyInThread, onCopyLink, onCopyText, onPin, onMarkUnread,
-  onEdit, onDelete, onForward, onRemind,
+  onEdit, onDelete, onForward, onRemind, onSave,
 }: MessageContextMenuProps) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -50,6 +51,7 @@ export function MessageContextMenu({
 
   const menuItems: { label: string; icon: string; onClick: () => void; danger?: boolean; divider?: boolean }[] = [
     { label: 'Im Thread antworten', icon: '💬', onClick: onReplyInThread },
+    { label: 'Fuer spaeter speichern', icon: '🔖', onClick: onSave },
     { label: 'An Channel weiterleiten...', icon: '↗️', onClick: onForward },
     { label: 'Link kopieren', icon: '🔗', onClick: onCopyLink },
     { label: 'Text kopieren', icon: '📋', onClick: onCopyText },

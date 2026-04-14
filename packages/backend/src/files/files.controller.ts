@@ -11,6 +11,11 @@ import { User } from '../users/user.entity';
 export class FilesController {
   constructor(private filesService: FilesService) {}
 
+  @Get()
+  findAll() {
+    return this.filesService.findAll();
+  }
+
   @Post('upload')
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 1024 * 1024 * 1024 } }))
   upload(@UploadedFile() file: Express.Multer.File, @CurrentUser() user: User, @Query('messageId') messageId?: string) {

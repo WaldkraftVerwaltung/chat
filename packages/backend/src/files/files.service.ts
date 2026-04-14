@@ -74,4 +74,12 @@ export class FilesService {
   async findByMessage(messageId: string): Promise<FileAttachment[]> {
     return this.fileRepo.find({ where: { messageId }, order: { createdAt: 'ASC' } });
   }
+
+  async findAll(limit = 100): Promise<FileAttachment[]> {
+    return this.fileRepo.find({
+      relations: ['user', 'message', 'message.channel'],
+      order: { createdAt: 'DESC' },
+      take: limit,
+    });
+  }
 }

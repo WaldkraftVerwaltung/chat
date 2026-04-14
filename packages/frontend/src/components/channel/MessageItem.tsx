@@ -356,6 +356,7 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
           onDelete={handleDelete}
           onForward={handleForward}
           onRemind={handleRemind}
+          onSave={handleSave}
         />
       )}
 

@@ -8,7 +8,7 @@ interface ChannelDetailsPanelProps {
   topic: string | null;
   description: string | null;
   type: 'public' | 'private';
-  initialTab?: 'about' | 'members';
+  initialTab?: 'about' | 'members' | 'pins';
   onClose: () => void;
 }
 
