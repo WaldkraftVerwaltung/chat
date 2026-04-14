@@ -226,6 +226,9 @@ export function Sidebar({ sidebarWidth = 208 }: SidebarProps) {
 
             {/* Quick nav sections */}
             <div className="px-1 py-1 space-y-0.5">
+              <button onClick={() => router.push('/unread')} className="flex items-center gap-2 w-full rounded px-3 py-1.5 text-sm text-slack-text hover:bg-slack-aubergine-light hover:text-white transition-colors">
+                <span>🔵</span> Ungelesen
+              </button>
               <button onClick={() => router.push('/threads')} className="flex items-center gap-2 w-full rounded px-3 py-1.5 text-sm text-slack-text hover:bg-slack-aubergine-light hover:text-white transition-colors">
                 <span>🧵</span> Threads
               </button>
