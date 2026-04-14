@@ -3,6 +3,7 @@ import { useState, useRef, KeyboardEvent, useEffect, useCallback } from 'react';
 import { getSocket } from '@/lib/socket';
 import { apiFetch } from '@/lib/api';
 import { EmojiPicker } from './EmojiPicker';
+import { VoiceRecorder } from './VoiceRecorder';
 import { useMessagesStore } from '@/stores/messages.store';
 import { useAuthStore } from '@/stores/auth.store';
 
@@ -27,6 +28,7 @@ interface MessageInputProps {
 
 export function MessageInput({ channelId, threadParentId, channelName }: MessageInputProps) {
   const [content, setContent] = useState('');
+  const [isRecordingVoice, setIsRecordingVoice] = useState(false);
   const [pendingFile, setPendingFile] = useState<{ id: string; originalFilename: string; mimeType: string; sizeBytes: number; thumbnailKey: string | null } | null>(null);
   const [uploading, setUploading] = useState(false);
   const [sendError, setSendError] = useState(false);
@@ -343,6 +345,21 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
       textarea.selectionStart = textarea.selectionEnd = pos + 1;
       textarea.focus();
     }, 0);
+  }
+
+  async function startVideoMeeting() {
+    const roomId = Math.random().toString(36).substring(2, 8) + '-' +
+                   Math.random().toString(36).substring(2, 6) + '-' +
+                   Math.random().toString(36).substring(2, 5);
+    const meetUrl = `https://meet.google.com/${roomId}`;
+
+    try {
+      await apiFetch(`/channels/${channelId}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({ content: `📹 Video-Meeting gestartet: ${meetUrl}\n\nKlicke auf den Link um beizutreten.` }),
+      });
+      window.open(meetUrl, '_blank');
+    } catch {}
   }
 
   const canSend = !uploading && (content.trim().length > 0 || !!pendingFile);
