@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
+import { usePresenceStore } from '@/stores/presence.store';
 
 interface ChannelDetailsPanelProps {
   channelId: string;
@@ -17,6 +18,7 @@ export function ChannelDetailsPanel({ channelId, channelName, topic, description
   const [pinnedMessages, setPinnedMessages] = useState<any[]>([]);
   const [pinsLoading, setPinsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'about' | 'members' | 'pins'>(initialTab || 'about');
+  const presenceMap = usePresenceStore((s) => s.presenceMap);
 
   useEffect(() => {
     apiFetch<any[]>(`/channels/${channelId}/members`).then(setMembers).catch(() => {});
@@ -62,15 +64,31 @@ export function ChannelDetailsPanel({ channelId, channelName, topic, description
           </div>
         )}
         {activeTab === 'members' && (
-          <div className="space-y-2">
-            {members.map((m: any) => (
-              <div key={m.userId} className="flex items-center gap-2 py-1">
-                <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold">
-                  {m.user?.displayName?.[0]?.toUpperCase() || '?'}
+          <div className="space-y-1">
+            {members.map((m: any) => {
+              const presence = m.userId ? presenceMap[m.userId] : undefined;
+              const presenceColor = presence === 'active' ? 'bg-green-500' : presence === 'dnd' ? 'bg-red-500' : 'bg-gray-400';
+              const presenceLabel = presence === 'active' ? 'Online' : presence === 'dnd' ? 'Nicht stoeren' : 'Abwesend';
+              return (
+                <div key={m.userId} className="flex items-center gap-2.5 py-1.5 px-1 rounded hover:bg-gray-50 transition-colors">
+                  <div className="relative flex-shrink-0">
+                    <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold">
+                      {m.user?.displayName?.[0]?.toUpperCase() || '?'}
+                    </div>
+                    <span
+                      className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white ${presenceColor}`}
+                      title={presenceLabel}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{m.user?.displayName || 'Unbekannt'}</p>
+                    {m.role && m.role !== 'member' && (
+                      <p className="text-xs text-gray-400 capitalize">{m.role}</p>
+                    )}
+                  </div>
                 </div>
-                <span className="text-sm">{m.user?.displayName || 'Unbekannt'}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
         {activeTab === 'pins' && (
