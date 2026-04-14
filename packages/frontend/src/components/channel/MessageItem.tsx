@@ -4,6 +4,7 @@ import { ReactionBar } from './ReactionBar';
 import { FilePreview } from './FilePreview';
 import { EmojiPicker } from './EmojiPicker';
 import { MessageContextMenu } from './MessageContextMenu';
+import { UserProfileCard } from './UserProfileCard';
 import { useThreadsStore } from '@/stores/threads.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { useMessagesStore } from '@/stores/messages.store';
@@ -60,8 +61,23 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(message.content);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [showProfileCard, setShowProfileCard] = useState(false);
+  const [profileCardPos, setProfileCardPos] = useState({ top: 0, left: 0 });
+  const hoverTimerRef = useRef<NodeJS.Timeout>();
   const messageRef = useRef<HTMLDivElement>(null);
   const currentUser = useAuthStore((s) => s.user);
+
+  function handleUserHoverStart(e: React.MouseEvent) {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    hoverTimerRef.current = setTimeout(() => {
+      setProfileCardPos({ top: rect.bottom + 4, left: rect.left });
+      setShowProfileCard(true);
+    }, 400);
+  }
+
+  function handleUserHoverEnd() {
+    clearTimeout(hoverTimerRef.current);
+  }
   const isOwn = currentUser?.id === (message.userId || message.user?.id);
 
   // Listen for arrow-up edit-message event
@@ -184,16 +200,22 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
             <span className="text-[10px] text-slack-gray-text">{time}</span>
           </div>
         ) : (
-          <div className="mt-0.5 flex-shrink-0">
+          <button className="mt-0.5 flex-shrink-0 cursor-pointer"
+            onMouseEnter={handleUserHoverStart} onMouseLeave={handleUserHoverEnd}
+            onClick={(e) => { clearTimeout(hoverTimerRef.current); const rect = e.currentTarget.getBoundingClientRect(); setProfileCardPos({ top: rect.bottom + 4, left: rect.left }); setShowProfileCard(true); }}>
             <Avatar name={message.user?.displayName || '?'} avatarUrl={message.user?.avatarUrl} size="md" />
-          </div>
+          </button>
         )}
 
         {/* Content */}
         <div className="min-w-0 flex-1">
           {!isGrouped && (
             <div className="flex items-baseline gap-2">
-              <span className="text-sm font-bold text-gray-900">{message.user?.displayName || 'Unbekannt'}</span>
+              <button className="text-sm font-bold text-gray-900 hover:underline cursor-pointer"
+                onMouseEnter={handleUserHoverStart} onMouseLeave={handleUserHoverEnd}
+                onClick={(e) => { clearTimeout(hoverTimerRef.current); const rect = e.currentTarget.getBoundingClientRect(); setProfileCardPos({ top: rect.bottom + 4, left: rect.left }); setShowProfileCard(true); }}>
+                {message.user?.displayName || 'Unbekannt'}
+              </button>
               <span className="text-xs text-slack-gray-text">{time}</span>
               {message.isEdited && <span className="text-xs text-slack-gray-text">(bearbeitet)</span>}
               {message.isPinned && <span className="text-xs text-yellow-600">Angepinnt</span>}
@@ -332,6 +354,24 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
           onDelete={handleDelete}
           onForward={handleForward}
           onRemind={handleRemind}
+        />
+      )}
+
+      {/* User profile card on hover/click */}
+      {showProfileCard && message.user && (
+        <UserProfileCard
+          user={{
+            id: message.user.id,
+            displayName: message.user.displayName,
+            avatarUrl: message.user.avatarUrl,
+            role: (message.user as any).role,
+            title: (message.user as any).title,
+            statusEmoji: (message.user as any).statusEmoji,
+            statusText: (message.user as any).statusText,
+            email: (message.user as any).email,
+          }}
+          position={profileCardPos}
+          onClose={() => setShowProfileCard(false)}
         />
       )}
     </>
