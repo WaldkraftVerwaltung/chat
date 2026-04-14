@@ -88,6 +88,8 @@ const NAV_ITEMS: { id: NavView; label: string; icon: React.ReactNode }[] = [
 
 const NAV_ROUTES: Partial<Record<NavView, string>> = {
   threads: '/threads',
+  activity: '/activity',
+  channels: '/channels',
 };
 
 // IDs of items that get hover popups

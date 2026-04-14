@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, ForbiddenException } from '@nestjs/common';
 import { ChannelsService } from './channels.service';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
@@ -25,6 +25,11 @@ export class ChannelsController {
   @Get('unread-counts')
   getUnreadCounts(@CurrentUser() user: User) {
     return this.channelsService.getUnreadCounts(user.id);
+  }
+
+  @Get('browse')
+  browse(@CurrentUser() user: User, @Query('search') search?: string) {
+    return this.channelsService.browse(user.workspaceId, user.id, search);
   }
 
   @Get(':id')

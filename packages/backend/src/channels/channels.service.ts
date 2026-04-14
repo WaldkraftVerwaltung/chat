@@ -37,6 +37,43 @@ export class ChannelsService {
       .getMany();
   }
 
+  async browse(workspaceId: string, userId: string, search?: string): Promise<any[]> {
+    let query = this.channelRepo
+      .createQueryBuilder('c')
+      .select([
+        'c.id', 'c.name', 'c.type', 'c.topic', 'c.description', 'c.isDefault', 'c.createdAt',
+      ])
+      .addSelect('COUNT(cm.user_id)::int', 'memberCount')
+      .addSelect(
+        `BOOL_OR(cm.user_id = :userId)`,
+        'isMember',
+      )
+      .leftJoin('channel_members', 'cm', 'cm.channel_id = c.id')
+      .where('c.workspace_id = :workspaceId', { workspaceId })
+      .andWhere('c.is_archived = false')
+      .andWhere('c.type = :public', { public: ChannelType.PUBLIC })
+      .setParameter('userId', userId)
+      .groupBy('c.id')
+      .orderBy('c.name', 'ASC');
+
+    if (search) {
+      query = query.andWhere('c.name ILIKE :search', { search: `%${search}%` });
+    }
+
+    const rows = await query.getRawMany();
+    return rows.map((r) => ({
+      id: r.c_id,
+      name: r.c_name,
+      type: r.c_type,
+      topic: r.c_topic,
+      description: r.c_description,
+      isDefault: r.c_is_default,
+      createdAt: r.c_created_at,
+      memberCount: r.memberCount ?? 0,
+      isMember: r.isMember ?? false,
+    }));
+  }
+
   async findById(channelId: string): Promise<Channel> {
     const channel = await this.channelRepo.findOne({ where: { id: channelId } });
     if (!channel) throw new NotFoundException('Channel not found');
