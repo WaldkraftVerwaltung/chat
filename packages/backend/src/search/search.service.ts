@@ -24,18 +24,30 @@ export class SearchService implements OnModuleInit {
   constructor(private config: ConfigService) {}
 
   async onModuleInit() {
-    this.client = new MeiliSearch({
-      host: this.config.get<string>('meilisearch.url')!,
-      apiKey: this.config.get<string>('meilisearch.key'),
-    });
+    try {
+      this.client = new MeiliSearch({
+        host: this.config.get<string>('meilisearch.url')!,
+        apiKey: this.config.get<string>('meilisearch.key'),
+      });
 
-    this.messagesIndex = this.client.index('messages');
+      // Create index if it doesn't exist
+      try {
+        await this.client.createIndex('messages', { primaryKey: 'id' });
+      } catch {} // Index may already exist
 
-    await this.messagesIndex.updateFilterableAttributes([
-      'channelId', 'userId', 'isPinned', 'hasFile', 'hasLink', 'createdAt',
-    ]);
-    await this.messagesIndex.updateSortableAttributes(['createdAt']);
-    await this.messagesIndex.updateSearchableAttributes(['content', 'userName', 'channelName']);
+      this.messagesIndex = this.client.index('messages');
+
+      await this.messagesIndex.updateFilterableAttributes([
+        'channelId', 'userId', 'isPinned', 'hasFile', 'hasLink', 'createdAt',
+      ]);
+      await this.messagesIndex.updateSortableAttributes(['createdAt']);
+      await this.messagesIndex.updateSearchableAttributes(['content', 'userName', 'channelName']);
+
+      console.log('Meilisearch initialized successfully');
+    } catch (err) {
+      console.error('Meilisearch initialization failed:', err);
+      // Don't crash the app if Meilisearch is down
+    }
   }
 
   async indexMessage(message: {
@@ -43,6 +55,7 @@ export class SearchService implements OnModuleInit {
     userId: string; userName: string; channelName: string | null; isPinned: boolean;
     hasFile: boolean; createdAt: Date;
   }): Promise<void> {
+    if (!this.messagesIndex) return;
     const doc: IndexedMessage = {
       id: message.id,
       content: message.content,
@@ -60,6 +73,7 @@ export class SearchService implements OnModuleInit {
   }
 
   async deleteMessage(messageId: string): Promise<void> {
+    if (!this.messagesIndex) return;
     await this.messagesIndex.deleteDocument(messageId);
   }
 
@@ -78,6 +92,7 @@ export class SearchService implements OnModuleInit {
     if (options.before) filters.push(`createdAt < ${options.before.getTime()}`);
     if (options.after) filters.push(`createdAt > ${options.after.getTime()}`);
 
+    if (!this.messagesIndex) return { hits: [], estimatedTotalHits: 0 };
     return this.messagesIndex.search(query, {
       filter: filters.length > 0 ? filters.join(' AND ') : undefined,
       sort: ['createdAt:desc'],

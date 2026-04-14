@@ -8,13 +8,25 @@ export class ReactionsService {
   constructor(@InjectRepository(Reaction) private readonly reactionRepo: Repository<Reaction>) {}
 
   async toggle(messageId: string, userId: string, emojiCode: string): Promise<{ added: boolean; reaction?: Reaction }> {
-    const existing = await this.reactionRepo.findOne({ where: { messageId, userId, emojiCode } });
-    if (existing) {
-      await this.reactionRepo.remove(existing);
-      return { added: false };
+    try {
+      const existing = await this.reactionRepo.findOne({ where: { messageId, userId, emojiCode } });
+      if (existing) {
+        await this.reactionRepo.remove(existing);
+        return { added: false };
+      }
+      const reaction = await this.reactionRepo.save(this.reactionRepo.create({ messageId, userId, emojiCode }));
+      return { added: true, reaction };
+    } catch (err: any) {
+      // Unique constraint violation — race condition, reaction was added between findOne and save
+      if (err.code === '23505') {
+        const existing = await this.reactionRepo.findOne({ where: { messageId, userId, emojiCode } });
+        if (existing) {
+          await this.reactionRepo.remove(existing);
+          return { added: false };
+        }
+      }
+      throw err;
     }
-    const reaction = await this.reactionRepo.save(this.reactionRepo.create({ messageId, userId, emojiCode }));
-    return { added: true, reaction };
   }
 
   async getByMessage(messageId: string): Promise<Reaction[]> {

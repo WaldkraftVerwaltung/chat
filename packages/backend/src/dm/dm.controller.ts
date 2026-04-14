@@ -10,8 +10,9 @@ export class DmController {
   constructor(private dmService: DmService) {}
 
   @Post()
-  create(@Body('userIds') userIds: string[], @CurrentUser() user: User) {
-    return this.dmService.findOrCreate(user.workspaceId, [...new Set([user.id, ...userIds])]);
+  create(@Body() body: { userIds: string[] }, @CurrentUser() user: User) {
+    const allIds = [...new Set([user.id, ...(body.userIds || [])])];
+    return this.dmService.findOrCreate(user.workspaceId, allIds);
   }
 
   @Get()

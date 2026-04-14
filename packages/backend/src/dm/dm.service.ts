@@ -12,20 +12,30 @@ export class DmService {
   ) {}
 
   async findOrCreate(workspaceId: string, userIds: string[]): Promise<DmConversation> {
-    if (userIds.length < 2 || userIds.length > 9) throw new BadRequestException('DM requires 2-9 participants');
-    const existing = await this.findExisting(workspaceId, userIds);
+    // Deduplicate and sort for consistent comparison
+    const sorted = [...new Set(userIds)].sort();
+    if (sorted.length < 2 || sorted.length > 9) throw new BadRequestException('DM requires 2-9 participants');
+
+    const existing = await this.findExisting(workspaceId, sorted);
     if (existing) return existing;
 
-    const conv = this.convRepo.create({ workspaceId, isGroup: userIds.length > 2 });
-    const saved = await this.convRepo.save(conv);
-    for (const userId of userIds) {
-      await this.partRepo.save(this.partRepo.create({ conversationId: saved.id, userId }));
+    try {
+      const conv = this.convRepo.create({ workspaceId, isGroup: sorted.length > 2 });
+      const saved = await this.convRepo.save(conv);
+      for (const userId of sorted) {
+        await this.partRepo.save(this.partRepo.create({ conversationId: saved.id, userId }));
+      }
+      return this.findById(saved.id);
+    } catch (err) {
+      // Race condition: another request may have created the conversation simultaneously
+      const retryExisting = await this.findExisting(workspaceId, sorted);
+      if (retryExisting) return retryExisting;
+      throw err;
     }
-    return this.findById(saved.id);
   }
 
   private async findExisting(workspaceId: string, userIds: string[]): Promise<DmConversation | null> {
-    const sorted = [...userIds].sort();
+    const sorted = [...new Set(userIds)].sort();
     const convs = await this.convRepo.createQueryBuilder('c')
       .innerJoin('c.participants', 'p')
       .where('c.workspace_id = :workspaceId', { workspaceId })

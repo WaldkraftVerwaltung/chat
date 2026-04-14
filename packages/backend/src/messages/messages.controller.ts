@@ -12,6 +12,11 @@ import { User } from '../users/user.entity';
 export class MessagesController {
   constructor(private messagesService: MessagesService) {}
 
+  @Get('pins')
+  getPins(@Param('channelId') channelId: string) {
+    return this.messagesService.getPinnedMessages(channelId);
+  }
+
   @Post()
   create(@Param('channelId') channelId: string, @Body() dto: CreateMessageDto, @CurrentUser() user: User) {
     return this.messagesService.create(dto, channelId, user.id);

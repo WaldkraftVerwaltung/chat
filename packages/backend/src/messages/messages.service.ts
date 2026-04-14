@@ -79,6 +79,14 @@ export class MessagesService {
     });
   }
 
+  async getPinnedMessages(channelId: string): Promise<Message[]> {
+    return this.messageRepo.find({
+      where: { channelId, isPinned: true, isDeleted: false },
+      relations: ['user', 'files'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
   async pin(id: string): Promise<Message> {
     const msg = await this.findById(id);
     msg.isPinned = true;
