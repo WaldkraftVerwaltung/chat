@@ -17,9 +17,10 @@ interface ChannelHeaderProps {
   onToggleDetails?: () => void;
   onToggleMembers?: () => void;
   onTogglePins?: () => void;
+  onOpenSettings?: () => void;
 }
 
-export function ChannelHeader({ channelId, name, topic, type, memberCount, isStarred, onToggleStar, onToggleDetails, onToggleMembers, onTogglePins }: ChannelHeaderProps) {
+export function ChannelHeader({ channelId, name, topic, type, memberCount, isStarred, onToggleStar, onToggleDetails, onToggleMembers, onTogglePins, onOpenSettings }: ChannelHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -194,7 +195,7 @@ export function ChannelHeader({ channelId, name, topic, type, memberCount, isSta
 
               {/* Einstellungen bearbeiten */}
               <button
-                onClick={() => { alert('Channel-Einstellungen werden bald verfuegbar sein.'); closeMenu(); }}
+                onClick={() => { onOpenSettings?.(); closeMenu(); }}
                 className="w-full text-left px-4 py-2 text-sm text-gray-900 hover:bg-gray-50 flex items-center"
               >
                 Einstellungen bearbeiten

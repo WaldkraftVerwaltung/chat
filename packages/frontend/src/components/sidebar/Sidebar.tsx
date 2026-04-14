@@ -9,6 +9,7 @@ import { ActivityView } from './ActivityView';
 import { ThreadsView } from './ThreadsView';
 import { SavedView } from './SavedView';
 import { useAuthStore } from '@/stores/auth.store';
+import { apiFetch } from '@/lib/api';
 import { useSearchStore } from '@/stores/search.store';
 import { ProfileMenu } from './ProfileMenu';
 import { CreateChannelDialog } from '@/components/channel/CreateChannelDialog';
@@ -97,6 +98,13 @@ export function Sidebar({ sidebarWidth = 208 }: SidebarProps) {
   const [showCreateChannel, setShowCreateChannel] = useState(false);
   const [showCreateDm, setShowCreateDm] = useState(false);
   const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
+  const [workspaceName, setWorkspaceName] = useState('Waldkraft');
+
+  useEffect(() => {
+    apiFetch<{ name: string }>('/workspace')
+      .then((ws) => { if (ws?.name) setWorkspaceName(ws.name); })
+      .catch(() => {});
+  }, []);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -183,7 +191,7 @@ export function Sidebar({ sidebarWidth = 208 }: SidebarProps) {
                   className="flex items-center gap-1 text-slack-text-bright font-bold text-base truncate max-w-[120px] hover:text-white"
                   onClick={() => setShowWorkspaceMenu((v) => !v)}
                 >
-                  SOFTGAMES
+                  {workspaceName}
                   <span className="text-xs text-slack-text">▾</span>
                 </button>
                 <div className="flex items-center gap-1 flex-shrink-0">

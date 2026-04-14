@@ -7,6 +7,7 @@ import { MessageInput } from '@/components/channel/MessageInput';
 import { ThreadPanel } from '@/components/channel/ThreadPanel';
 import { TypingIndicator } from '@/components/channel/TypingIndicator';
 import { ChannelDetailsPanel } from '@/components/channel/ChannelDetailsPanel';
+import { ChannelSettingsDialog } from '@/components/channel/ChannelSettingsDialog';
 import { useChannelsStore } from '@/stores/channels.store';
 import { useChannelSocket } from '@/hooks/useSocket';
 import { useThreadsStore } from '@/stores/threads.store';
@@ -25,6 +26,7 @@ export default function ChannelPage() {
   const activeThreadId = useThreadsStore((s) => s.activeThreadId);
   const [showDetails, setShowDetails] = useState(false);
   const [detailsTab, setDetailsTab] = useState<'about' | 'members' | 'pins'>('about');
+  const [showSettings, setShowSettings] = useState(false);
   const [memberCount, setMemberCount] = useState<number | undefined>(undefined);
   const [threadWidth, setThreadWidth] = useState(THREAD_DEFAULT);
 
@@ -66,6 +68,7 @@ export default function ChannelPage() {
           }}
           onToggleMembers={() => openDetails('members')}
           onTogglePins={() => openDetails('pins')}
+          onOpenSettings={() => setShowSettings(true)}
         />
         <MessageList channelId={channelId} />
         <TypingIndicator channelId={channelId} />
@@ -78,6 +81,15 @@ export default function ChannelPage() {
             <ThreadPanel channelId={channelId} />
           </div>
         </>
+      )}
+      {showSettings && (
+        <ChannelSettingsDialog
+          channelId={channelId}
+          channelName={channel.name}
+          topic={channel.topic ?? null}
+          description={(channel as any).description ?? null}
+          onClose={() => setShowSettings(false)}
+        />
       )}
       {showDetails && !activeThreadId && (
         <ChannelDetailsPanel
