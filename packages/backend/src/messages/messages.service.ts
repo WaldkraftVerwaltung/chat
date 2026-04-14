@@ -44,12 +44,12 @@ export class MessagesService {
       .createQueryBuilder('m')
       .leftJoinAndSelect('m.user', 'u')
       .leftJoinAndSelect('m.files', 'f')
-      .where('(m.channelId = :id OR m.dmConversationId = :id)', { id: channelOrDmId })
-      .andWhere('m.threadParentId IS NULL')
-      .andWhere('m.isDeleted = false')
+      .where('(m.channel_id = :id OR m.dm_conversation_id = :id)', { id: channelOrDmId })
+      .andWhere('m.thread_parent_id IS NULL')
+      .andWhere('m.is_deleted = false')
       .orderBy('m.createdAt', 'DESC')
-      .take(limit);
-    if (before) qb.andWhere('m.createdAt < :before', { before });
+      .limit(limit);
+    if (before) qb.andWhere('m.created_at < :before', { before });
     return (await qb.getMany()).reverse();
   }
 

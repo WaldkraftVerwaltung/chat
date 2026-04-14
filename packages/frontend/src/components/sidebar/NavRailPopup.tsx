@@ -12,6 +12,7 @@ interface NavRailPopupProps {
 
 export function NavRailPopup({ isVisible, onClose, title, topRight, children, anchorTop }: NavRailPopupProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -21,11 +22,17 @@ export function NavRailPopup({ isVisible, onClose, title, topRight, children, an
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isVisible, onClose]);
 
+  useEffect(() => {
+    return () => { clearTimeout(closeTimer.current); };
+  }, []);
+
   if (!isVisible) return null;
 
   return (
     <div
       ref={ref}
+      onMouseEnter={() => clearTimeout(closeTimer.current)}
+      onMouseLeave={() => { closeTimer.current = setTimeout(onClose, 300); }}
       className="fixed z-50 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden"
       style={{ top: Math.max(anchorTop - 20, 50), left: 72 }}
     >

@@ -135,9 +135,12 @@ export function NavRail({ activeView, onViewChange, onCompose, onCreateChannel, 
 
   function handleNavLeave() {
     clearTimeout(hoverTimer.current);
+    // Close popup after a short delay (allows mouse to move to popup)
+    hoverTimer.current = setTimeout(() => setHoverItem(null), 400);
   }
 
   function closePopup() {
+    clearTimeout(hoverTimer.current);
     setHoverItem(null);
   }
 
