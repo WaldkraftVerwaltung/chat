@@ -2,6 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom scrollbar — thin, rounded, Slack-style */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #b0b0b0 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #c4c4c4;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: #999;
+}
+
+/* Sidebar scrollbar — darker for dark bg */
+.bg-slack-aubergine ::-webkit-scrollbar-thumb,
+[class*="bg-slack-aubergine"] ::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+[class*="bg-slack-aubergine"] ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.35);
+}
+
 /* Slack-style mrkdwn rendered content */
 .mrkdwn-content code {
   background-color: #F6F6F6;
