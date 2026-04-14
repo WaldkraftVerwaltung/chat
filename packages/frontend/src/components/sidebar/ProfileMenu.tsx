@@ -6,11 +6,13 @@ import { usePresenceStore } from '@/stores/presence.store';
 import { getSocket } from '@/lib/socket';
 import { apiFetch } from '@/lib/api';
 import { StatusDialog } from './StatusDialog';
+import { ProfilePanel } from './ProfilePanel';
 
 export function ProfileMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [showStatus, setShowStatus] = useState(false);
   const [showDnd, setShowDnd] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const presence = usePresenceStore((s) => s.presenceMap[user?.id || ''] || 'active');
@@ -155,7 +157,7 @@ export function ProfileMenu() {
           {/* Profile & Settings */}
           <div className="px-2">
             <button
-              onClick={() => { setIsOpen(false); /* TODO: open profile */ }}
+              onClick={() => { setIsOpen(false); setShowProfile(true); }}
               className="flex w-full items-center rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
             >
               Profil
@@ -185,6 +187,13 @@ export function ProfileMenu() {
 
       {/* Status dialog */}
       <StatusDialog isOpen={showStatus} onClose={() => setShowStatus(false)} />
+
+      {/* Profile panel */}
+      <ProfilePanel
+        isOpen={showProfile}
+        onClose={() => setShowProfile(false)}
+        onOpenStatus={() => setShowStatus(true)}
+      />
     </div>
   );
 }
