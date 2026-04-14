@@ -14,6 +14,7 @@ jobs:
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script_stop: true
+          command_timeout: 20m
           envs: GH_PAT
           script: |
             set -e
@@ -34,7 +35,7 @@ jobs:
 
             # Stop old containers first
             docker compose down --remove-orphans 2>/dev/null || true
-            docker compose build --no-cache
+            docker compose build
             docker compose up -d
 
             echo "Waiting for services..."
