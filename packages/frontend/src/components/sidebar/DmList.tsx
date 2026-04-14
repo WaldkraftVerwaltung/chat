@@ -144,25 +144,50 @@ export function DmList() {
           const presenceColor = { active: 'bg-green-500', away: 'bg-gray-400', dnd: 'bg-red-500' }[presence];
           const unread = unreadByChannel[conv.id] || 0;
 
+          // Format relative time
+          const lastMessageTime = (conv as any).lastMessageAt || conv.createdAt;
+          const timeLabel = (() => {
+            if (!lastMessageTime) return '';
+            const d = new Date(lastMessageTime);
+            const now = new Date();
+            const diffMs = now.getTime() - d.getTime();
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            if (diffDays === 0) return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr';
+            if (diffDays === 1) return 'Gestern';
+            if (diffDays < 7) return d.toLocaleDateString('de-DE', { weekday: 'short' });
+            return d.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
+          })();
+          const lastMessage = (conv as any).lastMessagePreview || '';
+
           return (
             <Link key={conv.id} href={`/dm/${conv.id}`}
-              className={`flex items-center gap-2 rounded mx-1 px-2 py-1.5 hover:bg-slack-aubergine-light transition-colors ${unread > 0 ? 'text-white font-semibold' : 'text-slack-text'}`}>
-              <div className="relative flex-shrink-0">
+              className={`flex items-start gap-2.5 rounded mx-1 px-2 py-2 hover:bg-slack-aubergine-light transition-colors ${unread > 0 ? 'text-white' : 'text-slack-text'}`}>
+              <div className="relative flex-shrink-0 mt-0.5">
                 {otherUser?.avatarUrl ? (
-                  <img src={otherUser.avatarUrl} alt={name} className="w-8 h-8 rounded object-cover" />
+                  <img src={otherUser.avatarUrl} alt={name} className="w-10 h-10 rounded-lg object-cover" />
                 ) : (
-                  <div className="w-8 h-8 rounded bg-gray-500 flex items-center justify-center text-xs font-bold text-white">
+                  <div className="w-10 h-10 rounded-lg bg-gray-500 flex items-center justify-center text-sm font-bold text-white">
                     {name[0]?.toUpperCase() || '?'}
                   </div>
                 )}
                 <span className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-slack-aubergine ${presenceColor}`} />
               </div>
-              <span className="flex-1 truncate text-sm">{name}</span>
-              {unread > 0 && (
-                <span className="flex-shrink-0 bg-slack-red text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
-                  {unread}
-                </span>
-              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-1">
+                  <span className={`text-sm truncate ${unread > 0 ? 'font-bold text-white' : 'font-medium'}`}>{name}</span>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <span className="text-[11px] text-slack-text">{timeLabel}</span>
+                    {unread > 0 && (
+                      <span className="bg-slack-red text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
+                        {unread}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {lastMessage && (
+                  <p className="text-xs text-slack-text truncate mt-0.5">{lastMessage}</p>
+                )}
+              </div>
             </Link>
           );
         })}
