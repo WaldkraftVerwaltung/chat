@@ -59,11 +59,10 @@ function WorkspaceMenu({ onClose }: { onClose: () => void }) {
 
       {/* Ordner erstellen */}
       <button
-        disabled
-        className="flex items-center justify-between w-full px-3 py-2 text-left text-gray-400 cursor-not-allowed"
+        onClick={onClose}
+        className="flex items-center w-full px-3 py-2 hover:bg-gray-100 text-left"
       >
-        <span>Ordner erstellen</span>
-        <span className="text-xs bg-gray-200 text-gray-500 rounded px-1 py-0.5">BEZAHLT</span>
+        Ordner erstellen
       </button>
 
       <div className="border-t border-gray-100 my-1" />
@@ -98,6 +97,7 @@ export function Sidebar({ sidebarWidth = 208 }: SidebarProps) {
   const [showCreateChannel, setShowCreateChannel] = useState(false);
   const [showCreateDm, setShowCreateDm] = useState(false);
   const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Close menu on outside click
@@ -258,8 +258,10 @@ export function Sidebar({ sidebarWidth = 208 }: SidebarProps) {
         onCompose={() => setShowCreateChannel(true)}
         onCreateChannel={() => setShowCreateChannel(true)}
         onCreateDm={() => { setActiveView('dms'); setShowCreateDm(true); }}
+        sidebarCollapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
       />
-      <div className="flex h-full flex-col bg-slack-aubergine overflow-hidden" style={{ width: sidebarWidth }}>
+      <div className="flex h-full flex-col bg-slack-aubergine overflow-hidden transition-all duration-200" style={{ width: sidebarCollapsed ? 0 : sidebarWidth }}>
         {/* Header — shown for all views except home (home renders its own workspace header) */}
         {activeView !== 'home' && (
           <div className="flex items-center gap-2 border-b border-slack-aubergine-light px-3 py-3">

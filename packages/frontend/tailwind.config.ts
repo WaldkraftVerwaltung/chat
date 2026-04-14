@@ -6,8 +6,8 @@ export default {
     extend: {
       colors: {
         slack: {
-          aubergine: '#3F0E40',
-          'aubergine-light': '#522653',
+          aubergine: '#4E1D4F',
+          'aubergine-light': '#6B3A6C',
           'aubergine-dark': '#350D36',
           hover: '#4A154B',
           active: '#1164A3',

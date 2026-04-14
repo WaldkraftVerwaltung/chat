@@ -150,14 +150,12 @@ export function ChannelHeader({ channelId, name, topic, type, memberCount, isSta
                 Channel-Details oeffnen
               </button>
 
-              {/* Channel zusammenfassen (PRO) */}
+              {/* Channel zusammenfassen */}
               <button
                 onClick={closeMenu}
-                title="Diese Funktion ist nur in der PRO-Version verfuegbar"
-                className="w-full text-left px-4 py-2 text-sm text-gray-900 hover:bg-gray-50 flex items-center justify-between"
+                className="w-full text-left px-4 py-2 text-sm text-gray-900 hover:bg-gray-50 flex items-center"
               >
-                <span>Channel zusammenfassen</span>
-                <span className="bg-purple-100 text-purple-700 text-[10px] font-bold rounded px-1.5 py-0.5">PRO</span>
+                Channel zusammenfassen
               </button>
 
               <div className="border-t border-gray-100 my-1" />
