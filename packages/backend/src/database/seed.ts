@@ -32,30 +32,31 @@ async function seed() {
   const passwordHash = await bcrypt.hash('Chat2026!', 12);
 
   const userDefs = [
-    { email: 'jacob@waldkraft.bio',     displayName: 'Jacob',     fullName: 'Jacob Dill',           role: UserRole.PRIMARY_OWNER },
-    { email: 'andre@waldkraft.bio',     displayName: 'Andre',     fullName: 'Andre Neumann',        role: UserRole.MEMBER },
-    { email: 'bjoern@waldkraft.bio',    displayName: 'Björn',     fullName: 'Björn Schmidt',        role: UserRole.ADMIN },
-    { email: 'lisa@waldkraft.bio',      displayName: 'Lisa',      fullName: 'Lisa Müller',          role: UserRole.MEMBER },
-    { email: 'thomas@waldkraft.bio',    displayName: 'Thomas',    fullName: 'Thomas Weber',         role: UserRole.MEMBER },
-    { email: 'sarah@waldkraft.bio',     displayName: 'Sarah',     fullName: 'Sarah Koch',           role: UserRole.MEMBER },
-    { email: 'michael@waldkraft.bio',   displayName: 'Michael',   fullName: 'Michael Braun',        role: UserRole.MEMBER },
-    { email: 'julia@waldkraft.bio',     displayName: 'Julia',     fullName: 'Julia Fischer',        role: UserRole.MEMBER },
-    { email: 'stefan@waldkraft.bio',    displayName: 'Stefan',    fullName: 'Stefan Wagner',        role: UserRole.MEMBER },
-    { email: 'katharina@waldkraft.bio', displayName: 'Katharina', fullName: 'Katharina Becker',     role: UserRole.MEMBER },
-    { email: 'florian@waldkraft.bio',   displayName: 'Florian',   fullName: 'Florian Zimmering',    role: UserRole.MEMBER },
-    { email: 'maria@waldkraft.bio',     displayName: 'Maria',     fullName: 'Maria Hoffmann',       role: UserRole.MEMBER },
-    { email: 'christian@waldkraft.bio', displayName: 'Christian', fullName: 'Christian Schäfer',    role: UserRole.MEMBER },
-    { email: 'anna@waldkraft.bio',      displayName: 'Anna',      fullName: 'Anna Richter',         role: UserRole.MEMBER },
-    { email: 'markus@waldkraft.bio',    displayName: 'Markus',    fullName: 'Markus Wolf',          role: UserRole.MEMBER },
-    { email: 'laura@waldkraft.bio',     displayName: 'Laura',     fullName: 'Laura Klein',          role: UserRole.MEMBER },
-    { email: 'daniel@waldkraft.bio',    displayName: 'Daniel',    fullName: 'Daniel Hartmann',      role: UserRole.MEMBER },
-    { email: 'sophie@waldkraft.bio',    displayName: 'Sophie',    fullName: 'Sophie Krause',        role: UserRole.MEMBER },
-    { email: 'patrick@waldkraft.bio',   displayName: 'Patrick',   fullName: 'Patrick Lehmann',      role: UserRole.MEMBER },
-    { email: 'elena@waldkraft.bio',     displayName: 'Elena',     fullName: 'Elena Schulz',         role: UserRole.MEMBER },
+    { email: 'jacob@waldkraft.bio',     displayName: 'Jacob',     fullName: 'Jacob Dill',           role: UserRole.PRIMARY_OWNER, avatarSeed: 'Jacob'     },
+    { email: 'andre@waldkraft.bio',     displayName: 'Andre',     fullName: 'Andre Neumann',        role: UserRole.MEMBER,        avatarSeed: 'Andre'     },
+    { email: 'bjoern@waldkraft.bio',    displayName: 'Björn',     fullName: 'Björn Schmidt',        role: UserRole.ADMIN,         avatarSeed: 'Bjoern'    },
+    { email: 'lisa@waldkraft.bio',      displayName: 'Lisa',      fullName: 'Lisa Müller',          role: UserRole.MEMBER,        avatarSeed: 'Lisa'      },
+    { email: 'thomas@waldkraft.bio',    displayName: 'Thomas',    fullName: 'Thomas Weber',         role: UserRole.MEMBER,        avatarSeed: 'Thomas'    },
+    { email: 'sarah@waldkraft.bio',     displayName: 'Sarah',     fullName: 'Sarah Koch',           role: UserRole.MEMBER,        avatarSeed: 'Sarah'     },
+    { email: 'michael@waldkraft.bio',   displayName: 'Michael',   fullName: 'Michael Braun',        role: UserRole.MEMBER,        avatarSeed: 'Michael'   },
+    { email: 'julia@waldkraft.bio',     displayName: 'Julia',     fullName: 'Julia Fischer',        role: UserRole.MEMBER,        avatarSeed: 'Julia'     },
+    { email: 'stefan@waldkraft.bio',    displayName: 'Stefan',    fullName: 'Stefan Wagner',        role: UserRole.MEMBER,        avatarSeed: 'Stefan'    },
+    { email: 'katharina@waldkraft.bio', displayName: 'Katharina', fullName: 'Katharina Becker',     role: UserRole.MEMBER,        avatarSeed: 'Katharina' },
+    { email: 'florian@waldkraft.bio',   displayName: 'Florian',   fullName: 'Florian Zimmering',    role: UserRole.MEMBER,        avatarSeed: 'Florian'   },
+    { email: 'maria@waldkraft.bio',     displayName: 'Maria',     fullName: 'Maria Hoffmann',       role: UserRole.MEMBER,        avatarSeed: 'Maria'     },
+    { email: 'christian@waldkraft.bio', displayName: 'Christian', fullName: 'Christian Schäfer',    role: UserRole.MEMBER,        avatarSeed: 'Christian' },
+    { email: 'anna@waldkraft.bio',      displayName: 'Anna',      fullName: 'Anna Richter',         role: UserRole.MEMBER,        avatarSeed: 'Anna'      },
+    { email: 'markus@waldkraft.bio',    displayName: 'Markus',    fullName: 'Markus Wolf',          role: UserRole.MEMBER,        avatarSeed: 'Markus'    },
+    { email: 'laura@waldkraft.bio',     displayName: 'Laura',     fullName: 'Laura Klein',          role: UserRole.MEMBER,        avatarSeed: 'Laura'     },
+    { email: 'daniel@waldkraft.bio',    displayName: 'Daniel',    fullName: 'Daniel Hartmann',      role: UserRole.MEMBER,        avatarSeed: 'Daniel'    },
+    { email: 'sophie@waldkraft.bio',    displayName: 'Sophie',    fullName: 'Sophie Krause',        role: UserRole.MEMBER,        avatarSeed: 'Sophie'    },
+    { email: 'patrick@waldkraft.bio',   displayName: 'Patrick',   fullName: 'Patrick Lehmann',      role: UserRole.MEMBER,        avatarSeed: 'Patrick'   },
+    { email: 'elena@waldkraft.bio',     displayName: 'Elena',     fullName: 'Elena Schulz',         role: UserRole.MEMBER,        avatarSeed: 'Elena'     },
   ];
 
   const users: Record<string, any> = {};
   for (const def of userDefs) {
+    const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${def.avatarSeed}`;
     let user = await usersService.findByEmail(def.email);
     if (!user) {
       user = await usersService.create({
@@ -66,10 +67,16 @@ async function seed() {
         role: def.role,
         workspaceId: workspace.id,
         timezone: 'Europe/Berlin',
+        avatarUrl,
       });
       console.log(`Created user: ${def.fullName} (${def.role})`);
     } else {
       console.log(`User ${def.displayName} already exists`);
+    }
+    if (!user.avatarUrl) {
+      user.avatarUrl = avatarUrl;
+      await usersService.updateProfile(user.id, { avatarUrl } as any);
+      console.log(`Updated avatarUrl for ${def.displayName}`);
     }
     users[def.displayName] = user;
   }
