@@ -2,6 +2,7 @@ import {
   Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn,
   ManyToOne, JoinColumn,
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
 import { UserRole, GuestType, Presence } from '@chat/shared';
 import { Workspace } from '../workspaces/workspace.entity';
 
@@ -20,6 +21,7 @@ export class User {
   @Column({ unique: true })
   email: string;
 
+  @Exclude()
   @Column({ name: 'password_hash' })
   passwordHash: string;
 
@@ -68,6 +70,7 @@ export class User {
   @Column({ name: 'two_factor_enabled', default: false })
   twoFactorEnabled: boolean;
 
+  @Exclude()
   @Column({ name: 'two_factor_secret', type: 'varchar', nullable: true })
   twoFactorSecret: string | null;
 

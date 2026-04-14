@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, ForbiddenException } from '@nestjs/common';
 import { ChannelsService } from './channels.service';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
 import { JwtAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { User } from '../users/user.entity';
+import { ChannelType } from '@chat/shared';
 
 @Controller('channels')
 @UseGuards(JwtAuthGuard)
@@ -37,7 +38,11 @@ export class ChannelsController {
   }
 
   @Post(':id/join')
-  join(@Param('id') id: string, @CurrentUser() user: User) {
+  async join(@Param('id') id: string, @CurrentUser() user: User) {
+    const channel = await this.channelsService.findById(id);
+    if (channel.type === ChannelType.PRIVATE) {
+      throw new ForbiddenException('Private channels require an invitation');
+    }
     return this.channelsService.addMember(id, user.id);
   }
 

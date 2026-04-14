@@ -26,7 +26,10 @@ export class WorkspacesService {
     const DEFAULT_ID = '00000000-0000-0000-0000-000000000001';
     let ws = await this.workspaceRepo.findOne({ where: { id: DEFAULT_ID } });
     if (!ws) {
-      ws = this.workspaceRepo.create({ id: DEFAULT_ID, name: 'Chat', slug: 'default', settings: {} });
+      ws = this.workspaceRepo.create({ id: DEFAULT_ID, name: 'Waldkraft Chat', slug: 'default', settings: {} });
+      ws = await this.workspaceRepo.save(ws);
+    } else if (ws.name !== 'Waldkraft Chat') {
+      ws.name = 'Waldkraft Chat';
       ws = await this.workspaceRepo.save(ws);
     }
     return ws;
