@@ -105,4 +105,44 @@ export class MessagesService {
     msg.isPinned = false;
     return this.messageRepo.save(msg);
   }
+
+  async getThreadsForUser(userId: string, limit = 20): Promise<any[]> {
+    // Find all messages where the user has replied in a thread, or started a thread
+    // A "thread parent" is a message that has thread replies (threadParentId IS NULL but has children)
+    const threads = await this.messageRepo.query(`
+      SELECT DISTINCT m.thread_parent_id as "parentId"
+      FROM messages m
+      WHERE m.thread_parent_id IS NOT NULL
+        AND m.is_deleted = false
+        AND (m.user_id = $1 OR m.thread_parent_id IN (
+          SELECT id FROM messages WHERE user_id = $1 AND id IN (
+            SELECT DISTINCT thread_parent_id FROM messages WHERE thread_parent_id IS NOT NULL
+          )
+        ))
+      ORDER BY MAX(m.created_at) OVER (PARTITION BY m.thread_parent_id) DESC
+      LIMIT $2
+    `, [userId, limit]);
+
+    // For each thread parent, get the parent message + reply count + last reply
+    const results = [];
+    for (const t of threads) {
+      if (!t.parentId) continue;
+      try {
+        const parent = await this.findById(t.parentId);
+        const replyCount = await this.messageRepo.count({ where: { threadParentId: t.parentId, isDeleted: false } });
+        const lastReply = await this.messageRepo.findOne({
+          where: { threadParentId: t.parentId, isDeleted: false },
+          relations: ['user'],
+          order: { createdAt: 'DESC' },
+        });
+        results.push({
+          parentMessage: parent,
+          replyCount,
+          lastReply,
+          lastReplyAt: lastReply?.createdAt,
+        });
+      } catch {}
+    }
+    return results;
+  }
 }

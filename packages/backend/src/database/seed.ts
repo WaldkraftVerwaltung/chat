@@ -8,8 +8,7 @@ import { getRepositoryToken, getDataSourceToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { Message } from '../messages/message.entity';
 import { Reaction } from '../reactions/reaction.entity';
-import { DmConversation } from '../dm/dm-conversation.entity';
-import { DmParticipant } from '../dm/dm-participant.entity';
+import { DmService } from '../dm/dm.service';
 import * as bcrypt from 'bcrypt';
 
 async function seed() {
@@ -18,10 +17,9 @@ async function seed() {
   const workspacesService = app.get(WorkspacesService);
   const channelsService = app.get(ChannelsService);
   const usersService = app.get(UsersService);
+  const dmService = app.get(DmService);
   const messageRepo = app.get(getRepositoryToken(Message));
   const reactionRepo = app.get(getRepositoryToken(Reaction));
-  const dmConvRepo = app.get(getRepositoryToken(DmConversation));
-  const dmParticipantRepo = app.get(getRepositoryToken(DmParticipant));
   const dataSource = app.get(DataSource);
 
   // 1. Ensure default workspace
@@ -633,25 +631,8 @@ async function seed() {
   console.log('\nCreating Group DMs...');
 
   // DM 1: Jacob + Björn + Lisa (Management)
-  const existingDm1 = await dmConvRepo.findOne({
-    where: { workspaceId: workspace.id, isGroup: true } as any,
-    relations: ['participants'],
-  }).catch(() => null);
-
-  // Create DM 1: Jacob + Björn + Lisa
-  let dm1: any = null;
-  try {
-    dm1 = dmConvRepo.create({ workspaceId: workspace.id, isGroup: true });
-    dm1 = await dmConvRepo.save(dm1);
-    await dmParticipantRepo.save([
-      dmParticipantRepo.create({ conversationId: dm1.id, userId: users['Jacob'].id, lastReadAt: null }),
-      dmParticipantRepo.create({ conversationId: dm1.id, userId: users['Björn'].id, lastReadAt: null }),
-      dmParticipantRepo.create({ conversationId: dm1.id, userId: users['Lisa'].id, lastReadAt: null }),
-    ]);
-    console.log('Created Group DM: Jacob + Björn + Lisa');
-  } catch (e) {
-    console.log('Group DM 1 may already exist, skipping');
-  }
+  const dm1 = await dmService.findOrCreate(workspace.id, [users['Jacob'].id, users['Björn'].id, users['Lisa'].id]);
+  console.log('Group DM: Jacob + Björn + Lisa (findOrCreate)');
 
   if (dm1) {
     await msg(null, dm1.id, users['Jacob'].id,
@@ -669,19 +650,8 @@ async function seed() {
   }
 
   // DM 2: Thomas + Stefan + Daniel (Dev-Team)
-  let dm2: any = null;
-  try {
-    dm2 = dmConvRepo.create({ workspaceId: workspace.id, isGroup: true });
-    dm2 = await dmConvRepo.save(dm2);
-    await dmParticipantRepo.save([
-      dmParticipantRepo.create({ conversationId: dm2.id, userId: users['Thomas'].id, lastReadAt: null }),
-      dmParticipantRepo.create({ conversationId: dm2.id, userId: users['Stefan'].id, lastReadAt: null }),
-      dmParticipantRepo.create({ conversationId: dm2.id, userId: users['Daniel'].id, lastReadAt: null }),
-    ]);
-    console.log('Created Group DM: Thomas + Stefan + Daniel');
-  } catch (e) {
-    console.log('Group DM 2 may already exist, skipping');
-  }
+  const dm2 = await dmService.findOrCreate(workspace.id, [users['Thomas'].id, users['Stefan'].id, users['Daniel'].id]);
+  console.log('Group DM: Thomas + Stefan + Daniel (findOrCreate)');
 
   if (dm2) {
     await msg(null, dm2.id, users['Thomas'].id,
@@ -699,18 +669,8 @@ async function seed() {
   }
 
   // DM 3: Jacob + Andre (1:1)
-  let dm3: any = null;
-  try {
-    dm3 = dmConvRepo.create({ workspaceId: workspace.id, isGroup: false });
-    dm3 = await dmConvRepo.save(dm3);
-    await dmParticipantRepo.save([
-      dmParticipantRepo.create({ conversationId: dm3.id, userId: users['Jacob'].id, lastReadAt: null }),
-      dmParticipantRepo.create({ conversationId: dm3.id, userId: users['Andre'].id, lastReadAt: null }),
-    ]);
-    console.log('Created 1:1 DM: Jacob + Andre');
-  } catch (e) {
-    console.log('DM 3 may already exist, skipping');
-  }
+  const dm3 = await dmService.findOrCreate(workspace.id, [users['Jacob'].id, users['Andre'].id]);
+  console.log('1:1 DM: Jacob + Andre (findOrCreate)');
 
   if (dm3) {
     await msg(null, dm3.id, users['Jacob'].id,

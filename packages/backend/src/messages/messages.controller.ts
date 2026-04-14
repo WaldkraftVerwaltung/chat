@@ -68,6 +68,11 @@ export class MessageActionsController {
     return this.messagesService.delete(id, user.id);
   }
 
+  @Get('threads')
+  getThreadsForUser(@CurrentUser() user: User) {
+    return this.messagesService.getThreadsForUser(user.id);
+  }
+
   @Get(':id/thread')
   getThread(@Param('id') id: string) {
     return this.messagesService.getThreadReplies(id);
