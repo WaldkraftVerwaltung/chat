@@ -268,7 +268,7 @@ function KeyboardShortcuts() {
         { keys: [`${mod}K`], description: 'Schnellwechsler / Suche oeffnen' },
         { keys: [`${mod},`], description: 'Persoenliche Einstellungen' },
         { keys: [`${mod}Shift+J`], description: 'Downloads anzeigen' },
-        { keys: ['Esc'], description: 'Panel schliessen / Suche schliessen' },
+        { keys: ['Esc'], description: 'Aktiven Kanal als gelesen markieren' },
       ],
     },
     {
