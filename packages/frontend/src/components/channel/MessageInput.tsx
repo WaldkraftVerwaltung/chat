@@ -466,126 +466,139 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
           </div>
         )}
 
-        {/* Textarea */}
-        <div className="px-3 py-2">
-          <textarea
-            ref={textareaRef}
-            value={content}
-            onChange={(e) => handleInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholderText}
-            className="w-full resize-none bg-transparent text-sm text-gray-900 outline-none placeholder:text-slack-gray-text"
-            rows={1}
-            style={{ minHeight: '24px', maxHeight: '200px' }}
-          />
-        </div>
-
-        {/* Bottom toolbar — always visible */}
-        <div className="flex items-center justify-between border-t border-slack-border px-1.5 py-1">
-          {/* Left side icons */}
-          <div className="flex items-center gap-0.5">
-            {/* Attach file */}
-            <ToolbarBtn
-              title="Datei anhaengen"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-            >
-              {uploading ? (
-                <span className="text-xs text-slack-gray-text">...</span>
-              ) : (
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                </svg>
-              )}
-            </ToolbarBtn>
-            <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} />
-
-            {/* Format toggle (Aa) */}
-            <ToolbarBtn
-              title="Formatierung"
-              onClick={() => setShowFormatBar(!showFormatBar)}
-              active={showFormatBar}
-            >
-              <span className="text-sm font-semibold leading-none">Aa</span>
-            </ToolbarBtn>
-
-            {/* Emoji picker */}
-            <div className="relative">
-              <ToolbarBtn
-                title="Emoji"
-                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                active={showEmojiPicker}
-              >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </ToolbarBtn>
-              {showEmojiPicker && (
-                <div className="absolute bottom-full left-0 mb-2 z-50">
-                  <EmojiPicker
-                    onSelect={handleEmojiSelect}
-                    onClose={() => setShowEmojiPicker(false)}
-                  />
-                </div>
-              )}
+        {isRecordingVoice ? (
+          /* Voice recording UI replaces textarea + toolbar */
+          <div className="px-3 py-2.5">
+            <VoiceRecorder
+              channelId={channelId}
+              onDone={() => setIsRecordingVoice(false)}
+              onCancel={() => setIsRecordingVoice(false)}
+            />
+          </div>
+        ) : (
+          <>
+            {/* Textarea */}
+            <div className="px-3 py-2">
+              <textarea
+                ref={textareaRef}
+                value={content}
+                onChange={(e) => handleInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={placeholderText}
+                className="w-full resize-none bg-transparent text-sm text-gray-900 outline-none placeholder:text-slack-gray-text"
+                rows={1}
+                style={{ minHeight: '24px', maxHeight: '200px' }}
+              />
             </div>
 
-            {/* Mention button */}
-            <ToolbarBtn title="Erwaehnung (@)" onClick={triggerMention}>
-              <span className="text-sm font-semibold leading-none">@</span>
-            </ToolbarBtn>
+            {/* Bottom toolbar — always visible */}
+            <div className="flex items-center justify-between border-t border-slack-border px-1.5 py-1">
+              {/* Left side icons */}
+              <div className="flex items-center gap-0.5">
+                {/* Attach file */}
+                <ToolbarBtn
+                  title="Datei anhaengen"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  {uploading ? (
+                    <span className="text-xs text-slack-gray-text">...</span>
+                  ) : (
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                  )}
+                </ToolbarBtn>
+                <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} />
 
-            {/* Separator */}
-            <div className="w-px h-5 bg-gray-300 mx-1" />
+                {/* Format toggle (Aa) */}
+                <ToolbarBtn
+                  title="Formatierung"
+                  onClick={() => setShowFormatBar(!showFormatBar)}
+                  active={showFormatBar}
+                >
+                  <span className="text-sm font-semibold leading-none">Aa</span>
+                </ToolbarBtn>
 
-            {/* Video clip */}
-            <button title="Videoclip aufnehmen" className="p-1.5 rounded hover:bg-gray-100 text-slack-gray-text">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-            </button>
+                {/* Emoji picker */}
+                <div className="relative">
+                  <ToolbarBtn
+                    title="Emoji"
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    active={showEmojiPicker}
+                  >
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </ToolbarBtn>
+                  {showEmojiPicker && (
+                    <div className="absolute bottom-full left-0 mb-2 z-50">
+                      <EmojiPicker
+                        onSelect={handleEmojiSelect}
+                        onClose={() => setShowEmojiPicker(false)}
+                      />
+                    </div>
+                  )}
+                </div>
 
-            {/* Audio clip */}
-            <button title="Sprachnachricht aufnehmen" className="p-1.5 rounded hover:bg-gray-100 text-slack-gray-text">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-              </svg>
-            </button>
+                {/* Mention button */}
+                <ToolbarBtn title="Erwaehnung (@)" onClick={triggerMention}>
+                  <span className="text-sm font-semibold leading-none">@</span>
+                </ToolbarBtn>
 
-            {/* Separator */}
-            <div className="w-px h-5 bg-gray-300 mx-1" />
+                {/* Separator */}
+                <div className="w-px h-5 bg-gray-300 mx-1" />
 
-            {/* Shortcut/Canvas */}
-            <button title="Erstellen" className="p-1.5 rounded hover:bg-gray-100 text-slack-gray-text">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </button>
-          </div>
+                {/* Video meeting */}
+                <button onClick={startVideoMeeting} title="Video-Meeting starten" className="p-1.5 rounded hover:bg-gray-100 text-slack-gray-text">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
 
-          {/* Right side — Send button */}
-          <div className="flex items-center gap-0.5">
-            <button
-              onClick={sendMessage}
-              disabled={!canSend}
-              className={`flex items-center justify-center rounded-md p-1.5 transition-colors ${
-                canSend
-                  ? 'bg-slack-green text-white hover:bg-slack-green-hover'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              }`}
-              title="Senden"
-            >
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-              </svg>
-            </button>
-            <button title="Nachricht planen" className="p-1 text-slack-gray-text hover:text-gray-600">
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-          </div>
-        </div>
+                {/* Voice message */}
+                <button onClick={() => setIsRecordingVoice(true)} title="Sprachnachricht aufnehmen" className="p-1.5 rounded hover:bg-gray-100 text-slack-gray-text">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                  </svg>
+                </button>
+
+                {/* Separator */}
+                <div className="w-px h-5 bg-gray-300 mx-1" />
+
+                {/* Shortcut/Canvas */}
+                <button title="Erstellen" className="p-1.5 rounded hover:bg-gray-100 text-slack-gray-text">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Right side — Send button */}
+              <div className="flex items-center gap-0.5">
+                <button
+                  onClick={sendMessage}
+                  disabled={!canSend}
+                  className={`flex items-center justify-center rounded-md p-1.5 transition-colors ${
+                    canSend
+                      ? 'bg-slack-green text-white hover:bg-slack-green-hover'
+                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  }`}
+                  title="Senden"
+                >
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                  </svg>
+                </button>
+                <button title="Nachricht planen" className="p-1 text-slack-gray-text hover:text-gray-600">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
