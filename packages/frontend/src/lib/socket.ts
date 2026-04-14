@@ -5,7 +5,14 @@ let socket: Socket | null = null;
 export function getSocket(): Socket {
   if (!socket) {
     const token = localStorage.getItem('accessToken');
-    socket = io(WS_URL, { auth: { token }, transports: ['websocket'], autoConnect: false });
+    socket = io(WS_URL, {
+      auth: { token },
+      transports: ['websocket', 'polling'],
+      autoConnect: false,
+      reconnection: true,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 1000,
+    });
   }
   return socket;
 }

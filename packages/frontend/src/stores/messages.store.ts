@@ -63,7 +63,7 @@ export const useMessagesStore = create<MessagesState>((set) => ({
   removeMessage: (channelId, messageId) => set((s) => ({
     messagesByChannel: {
       ...s.messagesByChannel,
-      [channelId]: (s.messagesByChannel[channelId] || []).map((m) => m.id === messageId ? { ...m, isDeleted: true, content: '' } : m),
+      [channelId]: (s.messagesByChannel[channelId] || []).filter((m) => m.id !== messageId),
     },
   })),
 }));

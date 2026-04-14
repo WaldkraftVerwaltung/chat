@@ -58,7 +58,7 @@ export default function ChannelPage() {
         />
         <MessageList channelId={channelId} />
         <TypingIndicator channelId={channelId} />
-        <MessageInput channelId={channelId} />
+        <MessageInput channelId={channelId} channelName={channel.name} />
       </div>
       {activeThreadId && <ThreadPanel channelId={channelId} />}
       {showDetails && !activeThreadId && (
