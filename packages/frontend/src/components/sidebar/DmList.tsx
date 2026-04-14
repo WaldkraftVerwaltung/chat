@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useDmsStore } from '@/stores/dms.store';
 import { useAuthStore } from '@/stores/auth.store';
@@ -16,8 +16,24 @@ export function DmList() {
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState<any[]>([]);
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [filterType, setFilterType] = useState<'all' | 'internal' | 'external'>('all');
+  const filterMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { fetchConversations(); }, [fetchConversations]);
+
+  // Close filter menu on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (filterMenuRef.current && !filterMenuRef.current.contains(e.target as Node)) {
+        setShowFilterMenu(false);
+      }
+    }
+    if (showFilterMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showFilterMenu]);
 
   async function openUserPicker() {
     const allUsers = await apiFetch<any[]>('/users');
@@ -55,9 +71,39 @@ export function DmList() {
     <div className="flex flex-col h-full">
       {/* Header bar */}
       <div className="flex items-center justify-between px-3 py-2">
-        <div className="flex items-center gap-1">
-          <span className="text-sm font-semibold text-slack-text-bright">Direktnachrichten</span>
-          <span className="text-slack-text text-xs">▾</span>
+        <div className="relative" ref={filterMenuRef}>
+          <button
+            onClick={() => setShowFilterMenu(!showFilterMenu)}
+            className="flex items-center gap-1 rounded hover:bg-white/10 px-1 py-0.5 transition-colors"
+          >
+            <span className="text-sm font-semibold text-slack-text-bright">Direktnachrichten</span>
+            <span className="text-slack-text text-xs">▾</span>
+          </button>
+
+          {/* Filter dropdown */}
+          {showFilterMenu && (
+            <div className="absolute left-0 top-full mt-1 z-50 w-52 rounded-md bg-slack-aubergine-light shadow-lg border border-white/10 py-1">
+              <div className="px-3 py-1.5 text-xs text-slack-text font-medium uppercase tracking-wider">
+                Unterhaltungen filtern
+              </div>
+              <div className="border-t border-white/10 mt-1">
+                {([
+                  ['all', 'Alle'] as const,
+                  ['internal', 'Nur interne Personen'] as const,
+                  ['external', 'Nur externe Personen'] as const,
+                ]).map(([value, label]) => (
+                  <button
+                    key={value}
+                    onClick={() => { setFilterType(value); setShowFilterMenu(false); }}
+                    className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-white hover:bg-white/10 transition-colors"
+                  >
+                    <span className="w-4 text-center text-xs">{filterType === value ? '✓' : ''}</span>
+                    <span>{label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {/* Unread toggle */}

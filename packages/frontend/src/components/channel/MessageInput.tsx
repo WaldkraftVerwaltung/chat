@@ -517,10 +517,37 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
             <ToolbarBtn title="Erwaehnung (@)" onClick={triggerMention}>
               <span className="text-sm font-semibold leading-none">@</span>
             </ToolbarBtn>
+
+            {/* Separator */}
+            <div className="w-px h-5 bg-gray-300 mx-1" />
+
+            {/* Video clip */}
+            <button title="Videoclip aufnehmen" className="p-1.5 rounded hover:bg-gray-100 text-slack-gray-text">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </button>
+
+            {/* Audio clip */}
+            <button title="Sprachnachricht aufnehmen" className="p-1.5 rounded hover:bg-gray-100 text-slack-gray-text">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+              </svg>
+            </button>
+
+            {/* Separator */}
+            <div className="w-px h-5 bg-gray-300 mx-1" />
+
+            {/* Shortcut/Canvas */}
+            <button title="Erstellen" className="p-1.5 rounded hover:bg-gray-100 text-slack-gray-text">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </button>
           </div>
 
           {/* Right side — Send button */}
-          <div className="flex items-center">
+          <div className="flex items-center gap-0.5">
             <button
               onClick={sendMessage}
               disabled={!canSend}
@@ -533,6 +560,11 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+              </svg>
+            </button>
+            <button title="Nachricht planen" className="p-1 text-slack-gray-text hover:text-gray-600">
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
           </div>
