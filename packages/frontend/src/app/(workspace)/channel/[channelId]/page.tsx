@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { ChannelHeader } from '@/components/channel/ChannelHeader';
 import { MessageList } from '@/components/channel/MessageList';
@@ -11,6 +11,11 @@ import { useChannelsStore } from '@/stores/channels.store';
 import { useChannelSocket } from '@/hooks/useSocket';
 import { useThreadsStore } from '@/stores/threads.store';
 import { apiFetch } from '@/lib/api';
+import { ResizeHandle } from '@/components/ui/ResizeHandle';
+
+const THREAD_MIN = 300;
+const THREAD_MAX = 600;
+const THREAD_DEFAULT = 400;
 
 export default function ChannelPage() {
   const params = useParams();
@@ -21,6 +26,11 @@ export default function ChannelPage() {
   const [showDetails, setShowDetails] = useState(false);
   const [detailsTab, setDetailsTab] = useState<'about' | 'members'>('about');
   const [memberCount, setMemberCount] = useState<number | undefined>(undefined);
+  const [threadWidth, setThreadWidth] = useState(THREAD_DEFAULT);
+
+  const handleThreadResize = useCallback((delta: number) => {
+    setThreadWidth((w) => Math.min(THREAD_MAX, Math.max(THREAD_MIN, w - delta)));
+  }, []);
 
   useChannelSocket(channelId);
   useEffect(() => { setActiveChannel(channelId); }, [channelId, setActiveChannel]);
@@ -60,7 +70,14 @@ export default function ChannelPage() {
         <TypingIndicator channelId={channelId} />
         <MessageInput channelId={channelId} channelName={channel.name} />
       </div>
-      {activeThreadId && <ThreadPanel channelId={channelId} />}
+      {activeThreadId && (
+        <>
+          <ResizeHandle onResize={handleThreadResize} />
+          <div style={{ width: threadWidth, flexShrink: 0 }}>
+            <ThreadPanel channelId={channelId} />
+          </div>
+        </>
+      )}
       {showDetails && !activeThreadId && (
         <ChannelDetailsPanel
           channelId={channelId}

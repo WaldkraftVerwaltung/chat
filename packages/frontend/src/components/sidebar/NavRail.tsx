@@ -1,5 +1,7 @@
 'use client';
+import { useState } from 'react';
 import { useNotificationsStore } from '@/stores/notifications.store';
+import { CreateMenu } from './CreateMenu';
 
 export type NavView = 'home' | 'dms' | 'channels' | 'activity' | 'threads' | 'later' | 'more';
 
@@ -7,6 +9,8 @@ interface NavRailProps {
   activeView: NavView;
   onViewChange: (view: NavView) => void;
   onCompose: () => void;
+  onCreateChannel: () => void;
+  onCreateDm: () => void;
 }
 
 const NAV_ITEMS: { id: NavView; label: string; icon: React.ReactNode }[] = [
@@ -75,8 +79,9 @@ const NAV_ITEMS: { id: NavView; label: string; icon: React.ReactNode }[] = [
   },
 ];
 
-export function NavRail({ activeView, onViewChange, onCompose }: NavRailProps) {
+export function NavRail({ activeView, onViewChange, onCompose, onCreateChannel, onCreateDm }: NavRailProps) {
   const unreadCount = useNotificationsStore((s) => s.unreadCount);
+  const [showCreateMenu, setShowCreateMenu] = useState(false);
 
   return (
     <div className="flex h-full w-14 flex-col items-center bg-slack-aubergine-dark py-2 border-r border-black/20">
@@ -109,14 +114,22 @@ export function NavRail({ activeView, onViewChange, onCompose }: NavRailProps) {
         ))}
       </div>
 
-      {/* Compose button */}
-      <button
-        onClick={onCompose}
-        title="Neue Nachricht"
-        className="mt-auto mb-2 h-9 w-9 rounded-full bg-white/20 flex items-center justify-center text-white text-xl hover:bg-white/30 transition-colors"
-      >
-        +
-      </button>
+      {/* Compose / Create button */}
+      <div className="relative mt-auto mb-2">
+        <CreateMenu
+          isOpen={showCreateMenu}
+          onClose={() => setShowCreateMenu(false)}
+          onCreateChannel={onCreateChannel}
+          onCreateDm={onCreateDm}
+        />
+        <button
+          onClick={() => setShowCreateMenu((v) => !v)}
+          title="Erstellen"
+          className="h-9 w-9 rounded-full bg-white/20 flex items-center justify-center text-white text-xl hover:bg-white/30 transition-colors"
+        >
+          +
+        </button>
+      </div>
     </div>
   );
 }

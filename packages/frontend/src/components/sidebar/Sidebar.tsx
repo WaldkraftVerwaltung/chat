@@ -12,10 +12,15 @@ import { useSearchStore } from '@/stores/search.store';
 import { ProfileMenu } from './ProfileMenu';
 import { CreateChannelDialog } from '@/components/channel/CreateChannelDialog';
 
-export function Sidebar() {
+interface SidebarProps {
+  sidebarWidth?: number;
+}
+
+export function Sidebar({ sidebarWidth = 208 }: SidebarProps) {
   const user = useAuthStore((s) => s.user);
   const [activeView, setActiveView] = useState<NavView>('home');
   const [showCreateChannel, setShowCreateChannel] = useState(false);
+  const [showCreateDm, setShowCreateDm] = useState(false);
 
   function renderContent() {
     switch (activeView) {
@@ -113,8 +118,10 @@ export function Sidebar() {
         activeView={activeView}
         onViewChange={setActiveView}
         onCompose={() => setShowCreateChannel(true)}
+        onCreateChannel={() => setShowCreateChannel(true)}
+        onCreateDm={() => { setActiveView('dms'); setShowCreateDm(true); }}
       />
-      <div className="flex h-full w-52 flex-col bg-slack-aubergine">
+      <div className="flex h-full flex-col bg-slack-aubergine" style={{ width: sidebarWidth }}>
         {/* Header — always visible */}
         <div className="flex items-center gap-2 border-b border-slack-aubergine-light px-3 py-3">
           <span className="font-semibold text-slack-text-bright flex-1 truncate">
