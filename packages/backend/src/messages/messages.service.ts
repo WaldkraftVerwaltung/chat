@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/commo
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Message } from './message.entity';
+import { MessageEdit } from './message-edit.entity';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
 import { SearchService } from '../search/search.service';
@@ -10,6 +11,7 @@ import { SearchService } from '../search/search.service';
 export class MessagesService {
   constructor(
     @InjectRepository(Message) private readonly messageRepo: Repository<Message>,
+    @InjectRepository(MessageEdit) private readonly editRepo: Repository<MessageEdit>,
     private readonly searchService: SearchService,
   ) {}
 
@@ -62,10 +64,16 @@ export class MessagesService {
   async update(id: string, dto: UpdateMessageDto, userId: string): Promise<Message> {
     const msg = await this.findById(id);
     if (msg.userId !== userId) throw new ForbiddenException('Can only edit your own messages');
+    // Save previous content to edit history before overwriting
+    await this.editRepo.save(this.editRepo.create({ messageId: id, content: msg.content }));
     msg.content = dto.content;
     msg.isEdited = true;
     msg.editedAt = new Date();
     return this.messageRepo.save(msg);
+  }
+
+  async getEditHistory(id: string): Promise<MessageEdit[]> {
+    return this.editRepo.find({ where: { messageId: id }, order: { editedAt: 'DESC' } });
   }
 
   async delete(id: string, userId: string): Promise<void> {

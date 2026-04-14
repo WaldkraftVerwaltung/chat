@@ -13,6 +13,7 @@ import { getSocket } from '@/lib/socket';
 import { apiFetch } from '@/lib/api';
 import { renderMrkdwn } from '@/lib/mrkdwn';
 import { ForwardMessageDialog } from './ForwardMessageDialog';
+import { MessageEditHistoryModal } from './MessageEditHistoryModal';
 
 interface MessageFile {
   id: string;
@@ -65,6 +66,7 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
   const [showProfileCard, setShowProfileCard] = useState(false);
   const [profileCardPos, setProfileCardPos] = useState({ top: 0, left: 0 });
   const [showForwardDialog, setShowForwardDialog] = useState(false);
+  const [showEditHistory, setShowEditHistory] = useState(false);
   const hoverTimerRef = useRef<NodeJS.Timeout>();
   const messageRef = useRef<HTMLDivElement>(null);
   const currentUser = useAuthStore((s) => s.user);
@@ -219,7 +221,15 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
                 {message.user?.displayName || 'Unbekannt'}
               </button>
               <span className="text-xs text-slack-gray-text">{time}</span>
-              {message.isEdited && <span className="text-xs text-slack-gray-text">(bearbeitet)</span>}
+              {message.isEdited && (
+                <button
+                  onClick={() => setShowEditHistory(true)}
+                  className="text-xs text-slack-gray-text hover:underline"
+                  title="Bearbeitungs-Verlauf anzeigen"
+                >
+                  (bearbeitet)
+                </button>
+              )}
               {message.isPinned && <span className="text-xs text-yellow-600">Angepinnt</span>}
             </div>
           )}
@@ -257,7 +267,13 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
           ) : (
             <>
               {isGrouped && message.isEdited && (
-                <span className="text-xs text-slack-gray-text">(bearbeitet)</span>
+                <button
+                  onClick={() => setShowEditHistory(true)}
+                  className="text-xs text-slack-gray-text hover:underline"
+                  title="Bearbeitungs-Verlauf anzeigen"
+                >
+                  (bearbeitet)
+                </button>
               )}
               <div
                 className="text-sm text-gray-800 whitespace-pre-wrap break-words [&_pre]:whitespace-pre-wrap [&_a]:text-slack-blue [&_a]:hover:underline"
@@ -384,6 +400,14 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
           messageContent={message.content}
           senderName={message.user?.displayName ?? 'Unbekannt'}
           onClose={() => setShowForwardDialog(false)}
+        />
+      )}
+
+      {/* Edit history modal */}
+      {showEditHistory && (
+        <MessageEditHistoryModal
+          messageId={message.id}
+          onClose={() => setShowEditHistory(false)}
         />
       )}
     </>

@@ -87,4 +87,9 @@ export class MessageActionsController {
   unpin(@Param('id') id: string) {
     return this.messagesService.unpin(id);
   }
+
+  @Get(':id/edits')
+  getEditHistory(@Param('id') id: string) {
+    return this.messagesService.getEditHistory(id);
+  }
 }
