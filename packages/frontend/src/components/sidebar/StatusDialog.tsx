@@ -75,7 +75,7 @@ export function StatusDialog({ isOpen, onClose }: StatusDialogProps) {
         body: JSON.stringify({
           statusEmoji,
           statusText,
-          ...(statusExpiry ? { statusExpiry: statusExpiry.toISOString() } : { statusExpiry: null }),
+          ...(statusExpiry ? { statusExpiration: statusExpiry.toISOString() } : { statusExpiration: null }),
         }),
       });
       setUser({ ...user!, ...updated });
