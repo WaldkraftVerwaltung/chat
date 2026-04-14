@@ -15,11 +15,21 @@ interface ChannelDetailsPanelProps {
 export function ChannelDetailsPanel({ channelId, channelName, topic, description, type, initialTab, onClose }: ChannelDetailsPanelProps) {
   const [members, setMembers] = useState<any[]>([]);
   const [pinnedMessages, setPinnedMessages] = useState<any[]>([]);
+  const [pinsLoading, setPinsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'about' | 'members' | 'pins'>(initialTab || 'about');
 
   useEffect(() => {
     apiFetch<any[]>(`/channels/${channelId}/members`).then(setMembers).catch(() => {});
   }, [channelId]);
+
+  useEffect(() => {
+    if (activeTab !== 'pins') return;
+    setPinsLoading(true);
+    apiFetch<any[]>(`/channels/${channelId}/messages/pins`)
+      .then(setPinnedMessages)
+      .catch(() => setPinnedMessages([]))
+      .finally(() => setPinsLoading(false));
+  }, [activeTab, channelId]);
 
   const tabs = [
     { id: 'about', label: 'Info' },
@@ -64,7 +74,28 @@ export function ChannelDetailsPanel({ channelId, channelName, topic, description
           </div>
         )}
         {activeTab === 'pins' && (
-          <p className="text-sm text-gray-500">Angepinnte Nachrichten erscheinen hier</p>
+          pinsLoading ? (
+            <p className="text-sm text-gray-400 text-center py-4">Laden...</p>
+          ) : pinnedMessages.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center py-4">Keine angepinnten Nachrichten</p>
+          ) : (
+            <div className="space-y-3">
+              {pinnedMessages.map((msg: any) => (
+                <div key={msg.id} className="rounded-lg border border-gray-200 p-3 bg-gray-50">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className="h-6 w-6 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                      {msg.user?.displayName?.[0]?.toUpperCase() || '?'}
+                    </div>
+                    <span className="text-xs font-semibold text-gray-900">{msg.user?.displayName || 'Unbekannt'}</span>
+                    <span className="text-xs text-gray-400 ml-auto">
+                      {new Date(msg.createdAt).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap break-words line-clamp-4">{msg.content}</p>
+                </div>
+              ))}
+            </div>
+          )
         )}
       </div>
     </div>

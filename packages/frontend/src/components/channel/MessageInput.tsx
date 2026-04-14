@@ -40,11 +40,26 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
   const [channelResults, setChannelResults] = useState<ChannelRef[]>([]);
   const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [unsent, setUnsent] = useState<{ messageId: string; countdown: number } | null>(null);
   const dragCounter = useRef(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeout = useRef<NodeJS.Timeout>();
   const draftTimeout = useRef<NodeJS.Timeout>();
+  const unsentInterval = useRef<ReturnType<typeof setInterval>>();
+
+  // Countdown timer for unsend banner
+  useEffect(() => {
+    if (!unsent) return;
+    unsentInterval.current = setInterval(() => {
+      setUnsent((u) => {
+        if (!u) return null;
+        if (u.countdown <= 1) { clearInterval(unsentInterval.current); return null; }
+        return { ...u, countdown: u.countdown - 1 };
+      });
+    }, 1000);
+    return () => clearInterval(unsentInterval.current);
+  }, [unsent?.messageId]);
 
   // Auto-resize textarea on content change
   useEffect(() => {
@@ -216,11 +231,25 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
       // Replace optimistic message with real one
       useMessagesStore.getState().removeMessage(channelId, tempId);
       useMessagesStore.getState().addMessage(channelId, saved);
+      // Start unsend countdown
+      clearInterval(unsentInterval.current);
+      setUnsent({ messageId: saved.id, countdown: 15 });
     } catch {
       // Remove optimistic message on failure
       useMessagesStore.getState().removeMessage(channelId, tempId);
       setSendError(true);
     }
+  }
+
+  async function handleUnsend() {
+    if (!unsent) return;
+    const { messageId } = unsent;
+    clearInterval(unsentInterval.current);
+    setUnsent(null);
+    try {
+      await apiFetch(`/messages/${messageId}`, { method: 'DELETE' });
+      useMessagesStore.getState().removeMessage(channelId, messageId);
+    } catch { /* message already gone */ }
   }
 
   function handleInput(value: string) {
@@ -423,6 +452,26 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
           </svg>
           <p className="text-sm font-semibold text-slack-blue">Datei hier ablegen</p>
           <p className="text-xs text-blue-500 mt-0.5">Loslassen zum Hochladen</p>
+        </div>
+      )}
+
+      {/* Unsend banner */}
+      {unsent && (
+        <div className="mb-2 flex items-center gap-2 rounded border border-green-200 bg-green-50 px-3 py-1.5 text-sm text-green-800">
+          <svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          <span>Nachricht gesendet</span>
+          <button
+            onClick={handleUnsend}
+            className="ml-2 font-semibold text-green-700 underline hover:text-green-900 transition-colors"
+          >
+            Widerrufen ({unsent.countdown}s)
+          </button>
+          <button
+            onClick={() => { clearInterval(unsentInterval.current); setUnsent(null); }}
+            className="ml-auto text-green-500 hover:text-green-700"
+          >&#x2715;</button>
         </div>
       )}
 
