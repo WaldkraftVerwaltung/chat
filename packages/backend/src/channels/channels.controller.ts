@@ -65,4 +65,23 @@ export class ChannelsController {
   archive(@Param('id') id: string) {
     return this.channelsService.archive(id);
   }
+
+  @Get(':id/bookmarks')
+  getBookmarks(@Param('id') id: string) {
+    return this.channelsService.getBookmarks(id);
+  }
+
+  @Post(':id/bookmarks')
+  addBookmark(
+    @Param('id') id: string,
+    @CurrentUser() user: User,
+    @Body() body: { title: string; url: string; emoji?: string },
+  ) {
+    return this.channelsService.addBookmark(id, user.id, body.title, body.url, body.emoji);
+  }
+
+  @Delete(':id/bookmarks/:bookmarkId')
+  deleteBookmark(@Param('id') id: string, @Param('bookmarkId') bookmarkId: string) {
+    return this.channelsService.deleteBookmark(bookmarkId, id);
+  }
 }

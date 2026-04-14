@@ -103,6 +103,21 @@ export function SavedView() {
                     >
                       {msg?.content || 'Nachricht nicht verfuegbar'}
                     </p>
+                    {item.remindAt && (
+                      <p className={`text-[10px] mt-0.5 flex items-center gap-1 ${
+                        new Date(item.remindAt) <= new Date()
+                          ? 'text-yellow-400'
+                          : 'text-slack-text'
+                      }`}>
+                        <span>⏰</span>
+                        <span>
+                          {new Date(item.remindAt) <= new Date()
+                            ? 'Erinnerung faellig'
+                            : `Erinnerung: ${new Date(item.remindAt).toLocaleString('de-DE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`
+                          }
+                        </span>
+                      </p>
+                    )}
                   </div>
                 </div>
                 {/* Actions */}

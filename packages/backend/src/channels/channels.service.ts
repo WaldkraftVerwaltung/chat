@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Channel } from './channel.entity';
 import { ChannelMember } from './channel-member.entity';
+import { ChannelBookmark } from './channel-bookmark.entity';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
 import { ChannelType, NotificationPreference } from '@chat/shared';
@@ -12,6 +13,7 @@ export class ChannelsService {
   constructor(
     @InjectRepository(Channel) private readonly channelRepo: Repository<Channel>,
     @InjectRepository(ChannelMember) private readonly memberRepo: Repository<ChannelMember>,
+    @InjectRepository(ChannelBookmark) private readonly bookmarkRepo: Repository<ChannelBookmark>,
   ) {}
 
   async create(dto: CreateChannelDto, userId: string, workspaceId: string): Promise<Channel> {
@@ -127,5 +129,19 @@ export class ChannelsService {
       HAVING COUNT(m.id) > 0
     `, [userId]);
     return results;
+  }
+
+  async getBookmarks(channelId: string): Promise<ChannelBookmark[]> {
+    return this.bookmarkRepo.find({ where: { channelId }, order: { position: 'ASC', createdAt: 'ASC' } });
+  }
+
+  async addBookmark(channelId: string, userId: string, title: string, url: string, emoji?: string): Promise<ChannelBookmark> {
+    const count = await this.bookmarkRepo.count({ where: { channelId } });
+    const bookmark = this.bookmarkRepo.create({ channelId, createdBy: userId, title, url, emoji: emoji || null, position: count });
+    return this.bookmarkRepo.save(bookmark);
+  }
+
+  async deleteBookmark(bookmarkId: string, channelId: string): Promise<void> {
+    await this.bookmarkRepo.delete({ id: bookmarkId, channelId });
   }
 }
