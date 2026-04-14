@@ -1,201 +1,172 @@
-# Lastenheft: QA-Ergebnisse & Fehlende Features
+# Lastenheft: Vollstaendige QA-Ergebnisse & Fehlende Features
 
 > **Stand:** 14.04.2026
-> **Getestet von:** 3 QA-Agents (Jacob/Admin, Lisa/Member, UX-Audit)
+> **Getestet von:** 3 QA-Agents (Jacob/Admin-API, Lisa/Member-API, UX/UI-Code-Audit)
 > **App-URL:** http://37.27.248.253:4011 (Frontend) / :4010 (Backend API)
 
 ---
 
-## 1. Kritische Bugs (SOFORT beheben)
+## Teil 1: Behobene kritische Bugs
 
-### 1.1 BEHOBEN: passwordHash in API-Responses
-- **Problem:** `passwordHash` und `twoFactorSecret` wurden in ALLEN API-Responses zurueckgegeben
-- **Fix:** `@Exclude()` Decorator + ClassSerializerInterceptor global
-- **Status:** ✅ Gefixt (Commit: fix critical security bugs)
-
-### 1.2 BEHOBEN: GET /channels/{id}/messages → 500
-- **Problem:** Nachrichten konnten nicht geladen werden (FileAttachment Entity nicht in MessagesModule registriert)
-- **Fix:** FileAttachment zu TypeOrmModule.forFeature hinzugefuegt
-- **Status:** ✅ Gefixt
-
-### 1.3 BEHOBEN: Workspace-Settings fuer alle aenderbar
-- **Problem:** Jeder Member konnte PATCH /workspace aufrufen und z.B. den Workspace-Namen aendern
-- **Fix:** Role-Check (nur PRIMARY_OWNER, OWNER, ADMIN)
-- **Status:** ✅ Gefixt
-
-### 1.4 BEHOBEN: Private Channels ohne Einladung beitretbar
-- **Problem:** POST /channels/{id}/join funktionierte auch fuer private Channels
-- **Fix:** ForbiddenException wenn Channel-Typ = private
-- **Status:** ✅ Gefixt
+| # | Bug | Status |
+|---|-----|--------|
+| S1 | passwordHash + twoFactorSecret in allen API-Responses | ✅ Behoben |
+| S2 | GET /channels/{id}/messages → 500 (FileAttachment fehlte) | ✅ Behoben |
+| S3 | PATCH /workspace fuer alle Member moeglich | ✅ Behoben |
+| S4 | Private Channels ohne Einladung beitretbar | ✅ Behoben |
+| S5 | Workspace-Name "Hacked Workspace" | ✅ Behoben |
 
 ---
 
-## 2. Offene Funktionsfehler
+## Teil 2: Offene Backend-Bugs
 
-### 2.1 Suche findet nichts (Meilisearch-Index leer)
-- **Prioritaet:** HOCH
-- **Problem:** GET /search?q=... gibt immer 0 Treffer zurueck
-- **Ursache:** Nachrichten werden nicht in Meilisearch indexiert
-- **Fix:** SearchService.indexMessage() wird im MessagesService.create() aufgerufen, aber der Meilisearch-Container hat moeglicherweise keinen initialisierten Index
+### Prio 1 — Kritisch
 
-### 2.2 POST /dms → 500 (Neue DMs nicht erstellbar)
-- **Prioritaet:** HOCH
-- **Problem:** DM-Erstellung schlaegt mit 500 fehl
-- **Vermutung:** Fehler im DmService.findOrCreate() oder fehlende Entity-Registration
+| # | Bug | Beschreibung |
+|---|-----|-------------|
+| B1 | Suche leer | Meilisearch-Index wird nicht befuellt. GET /search gibt immer 0 Treffer |
+| B2 | DM-Erstellung 500 | POST /dms schlaegt fehl bei neuen Konversationen |
+| B3 | Reaktionen 500 | POST /messages/{id}/reactions schlaegt bei manchen Nachrichten fehl |
+| B4 | DM-Duplikate | Gleiche DM-Konversation existiert mehrfach in der DB |
 
-### 2.3 POST /messages/{id}/reactions → 500
-- **Prioritaet:** HOCH (bei Lisa-Test, bei Jacob-Test funktionierte es)
-- **Problem:** Reaktionen funktionieren nicht konsistent
-- **Vermutung:** Race Condition oder fehlende Relation
+### Prio 2 — Wichtig
 
-### 2.4 DM-Duplikate in der Datenbank
-- **Prioritaet:** MITTEL
-- **Problem:** Gleiche DM-Konversation existiert mehrfach (Jacob↔Andre 3x)
-- **Ursache:** Seed-Script hat Duplikate erstellt, findOrCreate-Logik greift nicht zuverlaessig
-
-### 2.5 Notifications immer leer
-- **Prioritaet:** MITTEL
-- **Problem:** GET /notifications gibt immer leeres Array zurueck
-- **Ursache:** Notification-Trigger im Gateway funktionieren moeglicherweise nur via WebSocket, nicht bei REST-API-Nachrichten
-
-### 2.6 Notification Count Format inkonsistent
-- **Prioritaet:** NIEDRIG
-- **Problem:** GET /notifications/count gibt plain Integer `0` statt `{"count":0}` zurueck
+| # | Bug | Beschreibung |
+|---|-----|-------------|
+| B5 | Notifications leer | Notification-System erzeugt keine Eintraege (nur via WebSocket, nicht REST) |
+| B6 | Notification Count Format | Gibt plain Integer statt JSON-Objekt zurueck |
+| B7 | Kein GET /channels/{id}/pins | Endpoint zum Auflisten gepinnter Nachrichten fehlt |
+| B8 | Kein POST /messages/{id}/save | Endpoint zum Speichern von Nachrichten fehlt |
+| B9 | Kein POST /messages/{id}/forward | Nachricht weiterleiten fehlt |
+| B10 | Archivierte Channels nicht filterbar | Kein ?include_archived=true Parameter |
 
 ---
 
-## 3. Fehlende Backend-Features
+## Teil 3: Frontend UX/UI — Fehlende Funktionalitaet
 
-### 3.1 Thread-Antworten API
-- [ ] GET /api/messages/{id}/thread — existiert, muss getestet werden
-- [ ] POST /api/channels/{id}/messages mit threadParentId — muss geprüft werden
+### Prio 1 — Kritisch (App ist ohne diese kaum nutzbar)
 
-### 3.2 Gepinnte Nachrichten API
-- [ ] GET /api/channels/{id}/pins — fehlt (Endpoint zum Auflisten aller Pins eines Channels)
+| # | Was fehlt | Wo | Slack-Vergleich |
+|---|-----------|-----|----------------|
+| F1 | **Emoji-Suche filtert nicht** — zeigt immer alle Emojis | EmojiPicker.tsx | Slack filtert Emojis nach Suchbegriff |
+| F2 | **Reaktions-Tooltip zeigt UUIDs statt Namen** | ReactionBar.tsx | Slack zeigt "Max, Lisa und 3 weitere" |
+| F3 | **DM-Unread-Zaehler fehlen** — immer gruener Punkt | DmList.tsx | Slack zeigt fett + Badge fuer ungelesene DMs |
+| F4 | **Keine Fehler-States bei Netzwerkproblemen** | Alle Stores | Slack zeigt Inline-Error mit "Erneut versuchen" |
+| F5 | **Keine Nachrichten-Pagination** — nur ein Batch wird geladen | MessageList.tsx | Slack laedt aeltere Nachrichten beim Hochscrollen |
+| F6 | **Nachricht weiterleiten** tut nur Clipboard-Copy | MessageItem.tsx | Slack hat Forward-Dialog mit Channel-Auswahl |
+| F7 | **Pfeil-hoch** bearbeitet nicht letzte eigene Nachricht | MessageInput.tsx | Standard-Slack-Verhalten |
+| F8 | **Nachrichten als Lesezeichen speichern** fehlt komplett | MessageItem.tsx | Slack: Bookmark-Icon in Action-Bar |
 
-### 3.3 Saved Items API
-- [ ] POST /api/messages/{id}/save — fehlt (Nachricht speichern)
-- [ ] GET /api/saved-items — existiert, aber kein Save-Trigger vorhanden
+### Prio 2 — Wichtig (erwartet man als User)
 
-### 3.4 Nachricht weiterleiten
-- [ ] POST /api/messages/{id}/forward — fehlt
+| # | Was fehlt | Wo |
+|---|-----------|-----|
+| F9 | Profil-Bearbeitungs-Dialog (Name, Bild, Telefon) | ProfileMenu.tsx ("Profil" → TODO) |
+| F10 | Channel-Browser (alle Channels durchsuchen + beitreten) | Kein Komponent vorhanden |
+| F11 | Angepinnte Nachrichten Panel (Pin-Tab ist Platzhalter) | ChannelDetailsPanel.tsx |
+| F12 | Threads-View in Sidebar ist leerer Stub | ThreadsView.tsx |
+| F13 | Saved/Later-View zeigt keinen Nachrichteninhalt | SavedView.tsx |
+| F14 | Mitglieder-Management (Einladen, Entfernen, Rollen) | ChannelDetailsPanel.tsx |
+| F15 | Group-DM erstellen (Multi-User-Picker) | DmList.tsx (nur 1:1 moeglich) |
+| F16 | Channel-Topic inline bearbeiten | ChannelHeader.tsx (read-only) |
+| F17 | Pin-Button im Header hat keinen onClick-Handler | ChannelHeader.tsx |
+| F18 | Suche-Button im Header oeffnet nichts | ChannelHeader.tsx |
+| F19 | Bild-Lightbox (Klick auf Bild oeffnet Vollansicht) | Fehlt komplett |
+| F20 | Textarea auto-grow (waechst mit Inhalt) | MessageInput.tsx (rows=1 fix) |
+| F21 | Thread-Reply nutzt vereinfachte Textarea ohne Features | ThreadPanel.tsx |
+| F22 | Loeschen ohne Bestaetigungsdialog | MessageItem.tsx |
+| F23 | Keine "Neue Nachrichten"-Trennlinie | MessageList.tsx |
+| F24 | Kein optimistisches Update beim Senden | MessageInput.tsx |
+| F25 | DM-Presence statisch hardcoded gruen | DmList.tsx |
+| F26 | Klick auf Avatar/Name oeffnet kein Profil | MessageItem.tsx |
+| F27 | Kontextmenue-Position prueft nicht Viewport-Grenzen | MessageContextMenu.tsx |
+| F28 | Compose-Button erstellt Channel statt neue Nachricht | NavRail.tsx |
+| F29 | Multi-File-Upload fehlt (nur 1 Datei moeglich) | MessageInput.tsx |
+| F30 | Suche navigiert nur zum Channel, nicht zur Nachricht | SearchModal.tsx |
 
-### 3.5 Custom Emoji Upload
-- [ ] POST /api/emoji — existiert, muss getestet werden
+### Prio 3 — Nice-to-have
 
-### 3.6 User Groups Seed-Daten
-- [ ] GET /api/user-groups gibt leeres Array — keine Testdaten angelegt
-
-### 3.7 Archivierte Channels abrufen
-- [ ] GET /api/channels?include_archived=true — fehlt als Filter
-
----
-
-## 4. Fehlende Frontend-Features (UX/UI)
-
-### 4.1 Sidebar Navigation
-- [ ] **Navigation Rail** — existiert jetzt (NavRail), aber:
-  - Threads-View zeigt nur Platzhalter
-  - Saved/Later-View zeigt nur Platzhalter
-  - More-View hat keinen Inhalt
-  - DMs-View zeigt nur DM-Liste ohne Channels
-  - Channels-View braucht "Channel beitreten" Option
-
-### 4.2 Channel-Interaktionen
-- [ ] **Channel-Browser** — Alle oeffentlichen Channels durchsuchen und beitreten
-- [ ] **Channel-Einstellungen Dialog** — Topic, Beschreibung, Posting-Berechtigungen aendern
-- [ ] **Mitglieder einladen** — In-Channel Invite-Dialog
-- [ ] **Channel umbenennen**
-
-### 4.3 Nachrichten-Interaktionen
-- [ ] **Bild-Lightbox** — Klick auf Bild oeffnet Vollansicht
-- [ ] **Drag & Drop Upload** — Visuelle Drop-Zone ueber dem gesamten Chat
-- [ ] **Nachricht als Lesezeichen speichern** — Bookmark-Icon in Action-Bar
-- [ ] **Als ungelesen markieren** — Funktional im Kontextmenu verbinden
-- [ ] **Erinnern** — Funktional im Kontextmenu verbinden (Backend: Reminders fehlen)
-- [ ] **Weiterleiten** — Funktional im Kontextmenu verbinden (Backend fehlt)
-- [ ] **Nachrichtenbearbeitungs-Historie** — Klick auf "(bearbeitet)" zeigt alte Versionen
-
-### 4.4 Profilansicht
-- [ ] **Eigenes Profil bearbeiten** — Vollstaendige Profilseite (Name, Titel, Telefon, Zeitzone, Profilbild-Upload)
-- [ ] **Andere Profile ansehen** — Klick auf Avatar oeffnet Profil-Panel (existiert als UserProfileCard, aber unvollstaendig)
-- [ ] **Profilbild-Upload** — Fehlt komplett
-
-### 4.5 Persoenliche Einstellungen
-- [ ] **Benachrichtigungen** — Desktop-Push Ein/Aus, Sound, DND-Zeitplan
-- [ ] **Darstellung** — Hell/Dunkel-Theme Toggle, kompaktes Layout
-- [ ] **Sprache** — Deutsch/Englisch Umschaltung
-- [ ] **Tastenkuerzel-Uebersicht** — Alle Shortcuts anzeigen (Cmd+/ oder ?)
-
-### 4.6 Message Input Erweiterungen
-- [ ] **Sprachnachricht** — Mikrofon-Icon fuer Audio-Recording
-- [ ] **Nachricht planen** — Dropdown am Send-Button: "Spaeter senden"
-- [ ] **Code-Snippet erstellen** — Groesseres Code-Editor-Modal
-- [ ] **Poll/Umfrage erstellen** — Inline-Umfrage
-
-### 4.7 Responsiveness / Mobile
-- [ ] **Mobile Layout** — Sidebar als Drawer, kein Fixed-Width
-- [ ] **Touch-Gesten** — Swipe fuer Navigation
-- [ ] **Mobile Message Actions** — Long-Press statt Hover
-- [ ] **PWA-Icons** — Placeholder-Icons durch richtige ersetzen
-
-### 4.8 Performance
-- [ ] **Virtualisierte Nachrichtenliste** — Bei 1000+ Nachrichten wird die Liste langsam (react-window/virtuoso)
-- [ ] **Lazy Loading** — Channels und DMs erst laden wenn sichtbar
-- [ ] **Memoization** — React.memo fuer MessageItem, ChannelListItem
-
-### 4.9 Accessibility
-- [ ] **ARIA-Labels** — Fehlend auf den meisten interaktiven Elementen
-- [ ] **Focus Management** — Tab-Navigation durch Messages, Channels
-- [ ] **Screen Reader** — Announcements bei neuen Nachrichten
-- [ ] **Reduced Motion** — Animationen abschaltbar
-- [ ] **Kontrast** — Einige Slack-Text-Farben (#CFC3CF auf #3F0E40) muessen WCAG AA geprueft werden
-
-### 4.10 Fehlende Keyboard Shortcuts
-- [ ] **Pfeil-hoch** — Letzte eigene Nachricht bearbeiten
-- [ ] **Cmd+Shift+K** — DM-Browser oeffnen
-- [ ] **Cmd+Shift+L** — Channel-Browser oeffnen
-- [ ] **Cmd+Shift+M** — Aktivitaet oeffnen
-- [ ] **Cmd+Shift+T** — Threads oeffnen
-- [ ] **Cmd+Shift+A** — Alle ungelesenen anzeigen
-- [ ] **Cmd+Shift+S** — Saved Items oeffnen
-- [ ] **Esc** — Channel als gelesen markieren
-- [ ] **Cmd+/** — Tastenkuerzel anzeigen
-- [ ] **E** (bei fokussierter Nachricht) — Bearbeiten
-- [ ] **R** — Reaktion hinzufuegen
-- [ ] **T** — Thread oeffnen
+| # | Was fehlt | Wo |
+|---|-----------|-----|
+| F31 | Emoji-Skin-Tone-Auswahl | EmojiPicker.tsx |
+| F32 | Erweiterter Emoji-Katalog (~1800 statt ~200) | EmojiPicker.tsx |
+| F33 | Bearbeitungs-Modus ohne visuellen Hintergrund | MessageItem.tsx |
+| F34 | Toast ohne Ausblend-Animation | Toast.tsx |
+| F35 | Empty States ohne Illustrationen | Alle Views |
+| F36 | Workspace-Logo konfigurierbar | NavRail.tsx |
+| F37 | Loading-Skeletons statt "Laden..." Text | MessageList.tsx |
+| F38 | Read-Receipts in DMs | Fehlt |
+| F39 | Action-Buttons Unicode statt SVG-Icons | MessageItem.tsx |
+| F40 | Mention-Autocomplete ohne Avatar/Presence | MessageInput.tsx |
 
 ---
 
-## 5. Visuelles / Design
+## Teil 4: Accessibility (WCAG 2.1 AA)
 
-- [ ] **Profilbilder** — Alle User haben nur Initialen, kein Avatar-Upload
-- [ ] **PWA-Icons** — /icons/icon-192.png und /icons/icon-512.png fehlen (nur leerer Ordner)
-- [ ] **Favicon** — Nur leere Datei, kein echtes Icon
-- [ ] **Loading-Spinner** — Globaler Loading-State fehlt (App zeigt weissen Bildschirm beim Laden)
-- [ ] **Error-Boundaries** — Keine Error-Boundaries um Komponenten (ein Fehler crashed die ganze App)
-- [ ] **Leer-Zustaende** — Nicht alle Views haben schoene Empty States (z.B. DMs, Threads, Activity)
-- [ ] **Animationen** — Keine Uebergangsanimationen (Channel-Wechsel, Panel-Oeffnen)
+| # | Problem | WCAG | Prio |
+|---|---------|------|------|
+| A1 | Keine aria-label auf Icon-Buttons | 1.1.1 (A) | 1 |
+| A2 | Kein sichtbarer Focus-Ring auf Buttons | 2.4.7 (AA) | 1 |
+| A3 | Keine ARIA-Rollen auf Sidebar-Navigation | 4.1.2 (A) | 1 |
+| A4 | Modal-Dialoge ohne Fokus-Trap | 2.1.2 (A) | 1 |
+| A5 | Keine aria-live Region fuer neue Nachrichten | 4.1.3 (AA) | 2 |
+| A6 | Fehlender Alt-Text auf Avatar-Divs | 1.1.1 (A) | 2 |
+| A7 | Sidebar-Farbkontrast pruefbeduertig | 1.4.3 (AA) | 2 |
+| A8 | Emoji-Picker nicht per Tastatur bedienbar | 2.1.1 (A) | 2 |
+| A9 | Keine Skip-Navigation | 2.4.1 (A) | 2 |
 
 ---
 
-## Prioritaeten-Matrix
+## Teil 5: Keyboard-Shortcuts
 
-| Prio | Bereich | Aufwand | Status |
-|------|---------|---------|--------|
-| 🔴 1 | Security-Fixes (passwordHash etc.) | Klein | ✅ Behoben |
-| 🔴 1 | Messages 500 Error | Klein | ✅ Behoben |
-| 🔴 1 | Workspace Permissions | Klein | ✅ Behoben |
-| 🟡 2 | Suche (Meilisearch) | Mittel | Offen |
-| 🟡 2 | DM-Erstellung Fix | Klein | Offen |
-| 🟡 2 | Reaktionen Fix | Klein | Offen |
-| 🟡 2 | Profil-Bearbeitung | Mittel | Offen |
-| 🟡 2 | Channel-Browser | Mittel | Offen |
-| 🟡 2 | Nachricht speichern/weiterleiten | Mittel | Offen |
-| 🟢 3 | Keyboard Shortcuts | Klein | Offen |
-| 🟢 3 | Responsiveness/Mobile | Gross | Offen |
-| 🟢 3 | Accessibility | Gross | Offen |
-| 🟢 3 | Performance/Virtualisierung | Mittel | Offen |
-| ⚪ 4 | Sprachnachrichten | Gross | Offen |
-| ⚪ 4 | Polls/Umfragen | Mittel | Offen |
-| ⚪ 4 | Code-Snippets | Klein | Offen |
+| Shortcut | Funktion | Status |
+|----------|----------|--------|
+| Cmd+K | Suche oeffnen | ✅ Implementiert |
+| Cmd+, | Einstellungen | ❌ Fehlt |
+| Cmd+Shift+M | Aktivitaet | ❌ Fehlt |
+| Cmd+Shift+T | Threads | ❌ Fehlt |
+| Cmd+Shift+S | Gespeicherte | ❌ Fehlt |
+| Alt+↑/↓ | Vorheriger/naechster Channel | ❌ Fehlt |
+| Alt+Shift+↑/↓ | Naechster ungelesener | ❌ Fehlt |
+| Cmd+F | In Channel suchen | ❌ Fehlt |
+| Cmd+/ | Shortcut-Hilfe | ❌ Fehlt |
+| ↑ (leere Textarea) | Letzte Nachricht bearbeiten | ❌ Fehlt |
+| Escape | Channel als gelesen / Panel schliessen | ❌ Fehlt |
+
+---
+
+## Teil 6: Mobile / Responsive
+
+| # | Problem | Prio |
+|---|---------|------|
+| M1 | Kein responsive Layout — Sidebar fix, kein Drawer | 2 |
+| M2 | Thread-Panel ueberlagert Chat auf kleinen Viewports | 2 |
+| M3 | Hover-basierte Actions nicht auf Touch-Geraeten nutzbar | 2 |
+| M4 | Emoji-Picker zu breit fuer Mobile (<360px) | 3 |
+
+---
+
+## Teil 7: Performance
+
+| # | Problem | Prio |
+|---|---------|------|
+| P1 | messagesByChannel waechst unbegrenzt (kein LRU-Cache) | 2 |
+| P2 | updateMessage iteriert ueber alle Channel-Maps: O(n*m) | 2 |
+| P3 | MessageItem nicht mit React.memo | 2 |
+| P4 | Kein virtualisiertes Scrolling bei langen Nachrichtenlisten | 2 |
+| P5 | Typing-Indicator hat Timeout-Leaks bei vielen Events | 3 |
+| P6 | fetchConversations wird doppelt aufgerufen | 3 |
+
+---
+
+## Zusammenfassung
+
+| Kategorie | Prio 1 | Prio 2 | Prio 3 | Total |
+|-----------|--------|--------|--------|-------|
+| Backend-Bugs | 4 | 6 | — | 10 |
+| Frontend-Features | 8 | 22 | 10 | 40 |
+| Accessibility | 4 | 5 | — | 9 |
+| Keyboard-Shortcuts | 2 | 5 | 3 | 10 |
+| Mobile/Responsive | — | 3 | 1 | 4 |
+| Performance | — | 4 | 2 | 6 |
+| **Total** | **18** | **45** | **16** | **79** |
