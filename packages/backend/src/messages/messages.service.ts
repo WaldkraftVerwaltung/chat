@@ -155,26 +155,26 @@ export class MessagesService {
 
     const parentMap = new Map(parents.map((p) => [p.id, p]));
     const countMap = new Map(replyCounts.map((r: any) => [r.parentId, parseInt(r.count, 10)]));
-    const lastReplyMap = new Map(lastReplies.map((r: any) => [r.parentId, r]));
+    const lastReplyMap = new Map<string, any>(lastReplies.map((r: any) => [r.parentId, r]));
 
     return threads
       .filter((t: any) => parentMap.has(t.parentId))
       .map((t: any) => {
         const parent = parentMap.get(t.parentId)!;
-        const lastReply = lastReplyMap.get(t.parentId);
+        const lr: any = lastReplyMap.get(t.parentId);
         return {
           parentMessage: parent,
           replyCount: countMap.get(t.parentId) || 0,
-          lastReply: lastReply ? {
-            content: lastReply.content,
-            createdAt: lastReply.createdAt,
-            user: lastReply.userId ? {
-              id: lastReply.userId,
-              displayName: lastReply.displayName,
-              avatarUrl: lastReply.avatarUrl,
+          lastReply: lr ? {
+            content: lr.content,
+            createdAt: lr.createdAt,
+            user: lr.userId ? {
+              id: lr.userId,
+              displayName: lr.displayName,
+              avatarUrl: lr.avatarUrl,
             } : null,
           } : null,
-          lastReplyAt: lastReply?.createdAt || null,
+          lastReplyAt: lr?.createdAt || null,
         };
       });
   }
