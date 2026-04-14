@@ -35,7 +35,7 @@ export function ThreadPanel({ channelId }: { channelId: string }) {
   }
 
   return (
-    <div className="flex h-full w-96 flex-col border-l border-slack-border bg-white">
+    <div className="flex h-full w-full flex-col border-l border-slack-border bg-white">
       <div className="flex items-center justify-between border-b border-slack-border px-4 py-3">
         <h2 className="text-sm font-semibold text-gray-900">Thread</h2>
         <button onClick={closeThread} className="text-slack-gray-text hover:text-gray-700 text-lg">&times;</button>
