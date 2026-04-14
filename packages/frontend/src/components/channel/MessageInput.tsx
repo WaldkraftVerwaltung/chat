@@ -231,6 +231,9 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
       // Replace optimistic message with real one
       useMessagesStore.getState().removeMessage(channelId, tempId);
       useMessagesStore.getState().addMessage(channelId, saved);
+      // Start unsend countdown (15s)
+      clearInterval(unsentInterval.current);
+      setUnsent({ messageId: saved.id, countdown: 15 });
     } catch {
       // Remove optimistic message on failure
       useMessagesStore.getState().removeMessage(channelId, tempId);
