@@ -12,6 +12,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { getSocket } from '@/lib/socket';
 import { apiFetch } from '@/lib/api';
 import { renderMrkdwn } from '@/lib/mrkdwn';
+import { ForwardMessageDialog } from './ForwardMessageDialog';
 
 interface MessageFile {
   id: string;
@@ -63,6 +64,7 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [showProfileCard, setShowProfileCard] = useState(false);
   const [profileCardPos, setProfileCardPos] = useState({ top: 0, left: 0 });
+  const [showForwardDialog, setShowForwardDialog] = useState(false);
   const hoverTimerRef = useRef<NodeJS.Timeout>();
   const messageRef = useRef<HTMLDivElement>(null);
   const currentUser = useAuthStore((s) => s.user);
@@ -166,7 +168,7 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
   }
 
   function handleForward() {
-    handleCopyText();
+    setShowForwardDialog(true);
   }
 
   async function handleSave() {
@@ -372,6 +374,15 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
           }}
           position={profileCardPos}
           onClose={() => setShowProfileCard(false)}
+        />
+      )}
+
+      {/* Forward message dialog */}
+      {showForwardDialog && (
+        <ForwardMessageDialog
+          messageContent={message.content}
+          senderName={message.user?.displayName ?? 'Unbekannt'}
+          onClose={() => setShowForwardDialog(false)}
         />
       )}
     </>

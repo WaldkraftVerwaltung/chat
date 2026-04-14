@@ -39,6 +39,8 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
   const [mentionResults, setMentionResults] = useState<ChannelMember[]>([]);
   const [channelResults, setChannelResults] = useState<ChannelRef[]>([]);
   const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const dragCounter = useRef(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeout = useRef<NodeJS.Timeout>();
@@ -292,9 +294,7 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
     setTimeout(() => { textarea.focus(); }, 0);
   }
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function uploadFile(file: File) {
     setUploading(true);
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
@@ -313,6 +313,46 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await uploadFile(file);
+  }
+
+  function handleDragEnter(e: React.DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current += 1;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragOver(true);
+    }
+  }
+
+  function handleDragLeave(e: React.DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current -= 1;
+    if (dragCounter.current === 0) {
+      setIsDragOver(false);
+    }
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  async function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    dragCounter.current = 0;
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      await uploadFile(file);
     }
   }
 
@@ -368,7 +408,24 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
     : 'Nachricht schreiben...';
 
   return (
-    <div className="bg-white px-5 pb-4 pt-1">
+    <div
+      className="bg-white px-5 pb-4 pt-1 relative"
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      {/* Drag & Drop overlay */}
+      {isDragOver && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-slack-blue bg-blue-50/90 pointer-events-none">
+          <svg className="w-10 h-10 text-slack-blue mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+          <p className="text-sm font-semibold text-slack-blue">Datei hier ablegen</p>
+          <p className="text-xs text-blue-500 mt-0.5">Loslassen zum Hochladen</p>
+        </div>
+      )}
+
       {/* Send error toast */}
       {sendError && (
         <div className="mb-2 flex items-center gap-2 rounded border border-red-200 bg-red-50 px-3 py-1.5 text-sm text-red-700">
