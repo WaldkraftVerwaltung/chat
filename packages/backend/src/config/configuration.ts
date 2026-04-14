@@ -13,7 +13,7 @@ export default () => ({
   jwt: {
     secret: process.env.JWT_SECRET || 'dev-jwt-secret',
     refreshSecret: process.env.JWT_REFRESH_SECRET || 'dev-jwt-refresh-secret',
-    expiresIn: '15m',
+    expiresIn: '8h',
     refreshExpiresIn: '30d',
   },
   meilisearch: {

@@ -26,19 +26,28 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
   return res.json();
 }
 
+// Deduplicate concurrent refresh attempts — when multiple requests get 401
+// simultaneously, they all await the same refresh promise instead of firing
+// parallel refresh calls (which can race and invalidate each other).
+let refreshPromise: Promise<boolean> | null = null;
+
 async function refreshAccessToken(): Promise<boolean> {
-  const refreshToken = localStorage.getItem('refreshToken');
-  if (!refreshToken) return false;
-  try {
-    const res = await fetch(`${API_URL}/api/auth/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
-    });
-    if (!res.ok) return false;
-    const data = await res.json();
-    localStorage.setItem('accessToken', data.accessToken);
-    localStorage.setItem('refreshToken', data.refreshToken);
-    return true;
-  } catch { return false; }
+  if (refreshPromise) return refreshPromise;
+  refreshPromise = (async () => {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (!refreshToken) return false;
+    try {
+      const res = await fetch(`${API_URL}/api/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      });
+      if (!res.ok) return false;
+      const data = await res.json();
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      return true;
+    } catch { return false; }
+  })().finally(() => { refreshPromise = null; });
+  return refreshPromise;
 }
