@@ -44,12 +44,12 @@ export class MessagesService {
       .createQueryBuilder('m')
       .leftJoinAndSelect('m.user', 'u')
       .leftJoinAndSelect('m.files', 'f')
-      .where('(m.channel_id = :id OR m.dm_conversation_id = :id)', { id: channelOrDmId })
-      .andWhere('m.thread_parent_id IS NULL')
-      .andWhere('m.is_deleted = false')
-      .orderBy('m.created_at', 'DESC')
+      .where('(m.channelId = :id OR m.dmConversationId = :id)', { id: channelOrDmId })
+      .andWhere('m.threadParentId IS NULL')
+      .andWhere('m.isDeleted = false')
+      .orderBy('m.createdAt', 'DESC')
       .take(limit);
-    if (before) qb.andWhere('m.created_at < :before', { before });
+    if (before) qb.andWhere('m.createdAt < :before', { before });
     return (await qb.getMany()).reverse();
   }
 
@@ -107,42 +107,75 @@ export class MessagesService {
   }
 
   async getThreadsForUser(userId: string, limit = 20): Promise<any[]> {
-    // Find all messages where the user has replied in a thread, or started a thread
-    // A "thread parent" is a message that has thread replies (threadParentId IS NULL but has children)
+    // Find threads the user participated in (replied or started) with latest reply time
     const threads = await this.messageRepo.query(`
-      SELECT DISTINCT m.thread_parent_id as "parentId"
-      FROM messages m
-      WHERE m.thread_parent_id IS NOT NULL
-        AND m.is_deleted = false
-        AND (m.user_id = $1 OR m.thread_parent_id IN (
-          SELECT id FROM messages WHERE user_id = $1 AND id IN (
-            SELECT DISTINCT thread_parent_id FROM messages WHERE thread_parent_id IS NOT NULL
+      SELECT t.thread_parent_id AS "parentId"
+      FROM messages t
+      WHERE t.thread_parent_id IS NOT NULL
+        AND t.is_deleted = false
+        AND (
+          t.user_id = $1
+          OR t.thread_parent_id IN (
+            SELECT id FROM messages WHERE user_id = $1
           )
-        ))
-      ORDER BY MAX(m.created_at) OVER (PARTITION BY m.thread_parent_id) DESC
+        )
+      GROUP BY t.thread_parent_id
+      ORDER BY MAX(t.created_at) DESC
       LIMIT $2
     `, [userId, limit]);
 
-    // For each thread parent, get the parent message + reply count + last reply
-    const results = [];
-    for (const t of threads) {
-      if (!t.parentId) continue;
-      try {
-        const parent = await this.findById(t.parentId);
-        const replyCount = await this.messageRepo.count({ where: { threadParentId: t.parentId, isDeleted: false } });
-        const lastReply = await this.messageRepo.findOne({
-          where: { threadParentId: t.parentId, isDeleted: false },
-          relations: ['user'],
-          order: { createdAt: 'DESC' },
-        });
-        results.push({
+    if (threads.length === 0) return [];
+
+    // Batch-fetch parent messages, reply counts, and last replies
+    const parentIds = threads.map((t: any) => t.parentId).filter(Boolean);
+    if (parentIds.length === 0) return [];
+
+    const [parents, replyCounts, lastReplies] = await Promise.all([
+      this.messageRepo.find({
+        where: parentIds.map((id: string) => ({ id })),
+        relations: ['user', 'files'],
+      }),
+      this.messageRepo.query(`
+        SELECT thread_parent_id AS "parentId", COUNT(*) AS count
+        FROM messages
+        WHERE thread_parent_id = ANY($1) AND is_deleted = false
+        GROUP BY thread_parent_id
+      `, [parentIds]),
+      this.messageRepo.query(`
+        SELECT DISTINCT ON (m.thread_parent_id)
+          m.thread_parent_id AS "parentId",
+          m.content, m.created_at AS "createdAt",
+          u.id AS "userId", u.display_name AS "displayName", u.avatar_url AS "avatarUrl"
+        FROM messages m
+        LEFT JOIN users u ON u.id = m.user_id
+        WHERE m.thread_parent_id = ANY($1) AND m.is_deleted = false
+        ORDER BY m.thread_parent_id, m.created_at DESC
+      `, [parentIds]),
+    ]);
+
+    const parentMap = new Map(parents.map((p) => [p.id, p]));
+    const countMap = new Map(replyCounts.map((r: any) => [r.parentId, parseInt(r.count, 10)]));
+    const lastReplyMap = new Map(lastReplies.map((r: any) => [r.parentId, r]));
+
+    return threads
+      .filter((t: any) => parentMap.has(t.parentId))
+      .map((t: any) => {
+        const parent = parentMap.get(t.parentId)!;
+        const lastReply = lastReplyMap.get(t.parentId);
+        return {
           parentMessage: parent,
-          replyCount,
-          lastReply,
-          lastReplyAt: lastReply?.createdAt,
-        });
-      } catch {}
-    }
-    return results;
+          replyCount: countMap.get(t.parentId) || 0,
+          lastReply: lastReply ? {
+            content: lastReply.content,
+            createdAt: lastReply.createdAt,
+            user: lastReply.userId ? {
+              id: lastReply.userId,
+              displayName: lastReply.displayName,
+              avatarUrl: lastReply.avatarUrl,
+            } : null,
+          } : null,
+          lastReplyAt: lastReply?.createdAt || null,
+        };
+      });
   }
 }
