@@ -171,6 +171,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return { status: 'ok' };
   }
 
+  @SubscribeMessage('message:markUnread')
+  async handleMarkUnread(@ConnectedSocket() socket: Socket, @MessageBody() data: { messageId: string; channelId: string }) {
+    const user = socket.data.user;
+    if (!user) return;
+    try {
+      const message = await this.messagesService.findById(data.messageId);
+      if (!message) return;
+      // Set lastReadAt to 1ms before the message so it appears unread from that point
+      const beforeMsg = new Date(new Date(message.createdAt).getTime() - 1);
+      await this.channelsService.updateLastRead(data.channelId, user.id, beforeMsg);
+      // Notify the user's own clients about the unread count change
+      socket.emit('unread:update', { channelId: data.channelId });
+    } catch {
+      // Message not found or other error — ignore
+    }
+  }
+
   @SubscribeMessage('presence:heartbeat')
   async handleHeartbeat(@ConnectedSocket() socket: Socket) {
     const user = socket.data.user;

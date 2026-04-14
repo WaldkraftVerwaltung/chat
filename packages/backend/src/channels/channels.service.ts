@@ -110,8 +110,8 @@ export class ChannelsService {
     return this.channelRepo.save(channel);
   }
 
-  async updateLastRead(channelId: string, userId: string): Promise<void> {
-    await this.memberRepo.update({ channelId, userId }, { lastReadAt: new Date() });
+  async updateLastRead(channelId: string, userId: string, at?: Date): Promise<void> {
+    await this.memberRepo.update({ channelId, userId }, { lastReadAt: at ?? new Date() });
   }
 
   async getUnreadCounts(userId: string): Promise<{ channelId: string; unreadCount: number }[]> {
