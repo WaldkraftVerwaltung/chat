@@ -2,8 +2,8 @@ import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nest
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as jwt from 'jsonwebtoken';
-import { Channel } from '../database/entities/channel.entity';
-import { User } from '../database/entities/user.entity';
+import { Channel } from '../channels/channel.entity';
+import { User } from '../users/user.entity';
 
 /**
  * Video call service backed by LiveKit.

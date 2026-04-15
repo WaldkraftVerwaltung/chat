@@ -1,5 +1,5 @@
 import { Controller, Post, Get, Param, UseGuards, Req } from '@nestjs/common';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { AuthGuard } from '../auth/auth.guard';
 import { CallsService } from './calls.service';
 
 @Controller('calls')
@@ -7,7 +7,7 @@ export class CallsController {
   constructor(private readonly callsService: CallsService) {}
 
   @Post('channels/:channelId/start')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard)
   async startCall(@Param('channelId') channelId: string, @Req() req: any) {
     const userId = req.user.id;
     const token = await this.callsService.issueToken(channelId, userId);
@@ -21,7 +21,7 @@ export class CallsController {
   }
 
   @Get('channels/:channelId/token')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard)
   async getToken(@Param('channelId') channelId: string, @Req() req: any) {
     const userId = req.user.id;
     const token = await this.callsService.issueToken(channelId, userId);
