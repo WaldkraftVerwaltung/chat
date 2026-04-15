@@ -53,7 +53,7 @@ export class CallsService {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
-    const displayName = `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.email || userId;
+    const displayName = user.displayName || user.fullName || user.email || userId;
 
     const room = this.roomName(channelId);
 
