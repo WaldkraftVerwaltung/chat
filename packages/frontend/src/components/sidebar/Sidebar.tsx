@@ -199,11 +199,12 @@ export function Sidebar({ sidebarWidth = 208 }: SidebarProps) {
             <div className="relative px-3 py-2" ref={menuRef}>
               <div className="flex items-center justify-between">
                 <button
-                  className="flex items-center gap-1 text-slack-text-bright font-bold text-base truncate max-w-[120px] hover:text-white"
+                  className="flex items-center gap-1 text-slack-text-bright font-bold text-base truncate max-w-[160px] hover:text-white uppercase"
                   onClick={() => setShowWorkspaceMenu((v) => !v)}
+                  style={{ fontFamily: 'Arial, Helvetica, sans-serif', letterSpacing: '0.12em' }}
                 >
-                  {workspaceName}
-                  <span className="text-xs text-slack-text">▾</span>
+                  SOFTGAMES
+                  <span className="text-xs text-slack-text ml-0.5" style={{ letterSpacing: 'normal' }}>▾</span>
                 </button>
                 <div className="flex items-center gap-1 flex-shrink-0">
                   {/* Three-dot menu */}
