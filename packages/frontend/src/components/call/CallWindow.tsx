@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { Room } from 'livekit-client';
 import { useCallStore } from '@/stores/call.store';
-import { apiFetch } from '@/lib/api';
 import { CallStage } from './CallStage';
 
 /**
@@ -28,12 +27,9 @@ export function CallWindow() {
   const hangUp = async () => {
     if (!active) return;
     if (roomRef.current) {
-      await roomRef.current.disconnect();
-    }
-    try {
-      await apiFetch(`/calls/channels/${active.channelId}/end`, { method: 'POST' });
-    } catch (err) {
-      console.error('Failed to notify backend of call end:', err);
+      try {
+        await roomRef.current.disconnect();
+      } catch { /* already gone */ }
     }
     endActive();
   };

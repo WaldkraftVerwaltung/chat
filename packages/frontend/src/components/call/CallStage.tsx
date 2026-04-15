@@ -44,12 +44,21 @@ export function CallStage({
   const [toggling, setToggling] = useState<null | 'mic' | 'cam' | 'screen'>(null);
   const [connected, setConnected] = useState(false);
 
-  // Initialize room connection
+  // Stable refs so we don't re-run connection on every prop change
+  const initialMediaType = useRef(mediaType);
+  const roomOptionsRef = useRef(roomOptions);
+  const onErrorRef = useRef(onError);
+  const onEndRef = useRef(onEnd);
+  useEffect(() => { onErrorRef.current = onError; onEndRef.current = onEnd; }, [onError, onEnd]);
+
+  // Initialize room connection — ONLY re-runs when token/url change (i.e. new call)
   useEffect(() => {
+    let cancelled = false;
+
     const initRoom = async () => {
       try {
         const { Room } = await import('livekit-client');
-        const room = new Room(roomOptions);
+        const room = new Room(roomOptionsRef.current);
         roomRef.current = room;
 
         // Setup event listeners
@@ -76,42 +85,45 @@ export function CallStage({
           });
         });
 
-        room.on('disconnected', onEnd);
+        room.on('disconnected', () => { onEndRef.current(); });
 
         // Connect to room
         await room.connect(url, token);
+        if (cancelled) { await room.disconnect(); return; }
         setConnected(true);
 
-        // Publish local tracks
-        if (cameraEnabled) {
+        // Publish local tracks based on INITIAL media type
+        const shouldEnableCamera = initialMediaType.current === 'video';
+        if (shouldEnableCamera) {
           try {
             await room.localParticipant.setCameraEnabled(true);
           } catch (err) {
             console.error('Failed to enable camera:', err);
           }
         }
-        if (micEnabled) {
-          try {
-            await room.localParticipant.setMicrophoneEnabled(true);
-          } catch (err) {
-            console.error('Failed to enable microphone:', err);
-          }
+        try {
+          await room.localParticipant.setMicrophoneEnabled(true);
+        } catch (err) {
+          console.error('Failed to enable microphone:', err);
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unknown error';
         console.error('Failed to initialize room:', err);
-        onError(`Connection error: ${message}`);
+        onErrorRef.current(`Connection error: ${message}`);
       }
     };
 
     initRoom();
 
     return () => {
+      cancelled = true;
       if (roomRef.current) {
         roomRef.current.disconnect();
+        roomRef.current = null;
       }
     };
-  }, [token, url, cameraEnabled, micEnabled, roomOptions, onError, onEnd, roomRef]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, url]);
 
   const handleToggleMic = useCallback(async () => {
     if (toggling || !roomRef.current) return;
