@@ -37,24 +37,10 @@ export function TopBar() {
           <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
-          <span>Waldkraft Hub durchsuchen</span>
+          <span>Softgames Workspace durchsuchen</span>
         </button>
       </div>
 
-      {/* Right: profile */}
-      <div className="flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as any}>
-        {user && (
-          <div className="relative">
-            {(user as any).avatarUrl ? (
-              <img src={(user as any).avatarUrl} alt={user.displayName} className="w-7 h-7 rounded-lg object-cover" />
-            ) : (
-              <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center text-xs font-bold text-white">
-                {user.displayName?.[0]?.toUpperCase()}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
     </div>
   );
 }
