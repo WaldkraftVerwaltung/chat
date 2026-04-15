@@ -20,7 +20,7 @@ export class ChannelBookmark {
   @Column({ length: 2000 })
   url: string;
 
-  @Column({ name: 'emoji', length: 10, nullable: true })
+  @Column({ name: 'emoji', type: 'varchar', length: 10, nullable: true })
   emoji: string | null;
 
   @Column({ name: 'created_by' })
