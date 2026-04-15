@@ -35,13 +35,24 @@ services:
       MINIO_ROOT_USER: ${S3_ACCESS_KEY}
       MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY}
 
+  livekit:
+    image: livekit/livekit-server:latest
+    restart: unless-stopped
+    command: --config /etc/livekit.conf
+    ports:
+      - '7890:7880'
+      - '7891:7881'
+      - '7892:7882/udp'
+    volumes:
+      - ./livekit.conf:/etc/livekit.conf:ro
+
   backend:
     build:
       context: .
       dockerfile: packages/backend/Dockerfile
     container_name: chat-backend
     restart: unless-stopped
-    depends_on: [postgres, redis, meilisearch, minio]
+    depends_on: [postgres, redis, meilisearch, minio, livekit]
     ports:
       - '4010:3001'
     env_file:

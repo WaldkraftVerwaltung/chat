@@ -54,6 +54,9 @@ export default function SettingsPage() {
         {activeSection === 'language' && <LanguageSettings />}
         {activeSection === 'notifications' && <NotificationSettings />}
         {activeSection === 'accessibility' && <AccessibilitySettings />}
+        {activeSection === 'read-status' && <ReadStatusSettings />}
+        {activeSection === 'audio-video' && <AudioVideoSettings />}
+        {activeSection === 'privacy' && <PrivacySettings />}
         {activeSection === 'advanced' && <AdvancedSettings />}
         {activeSection === 'shortcuts' && <KeyboardShortcuts />}
       </div>
@@ -327,6 +330,223 @@ function KeyboardShortcuts() {
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function ReadStatusSettings() {
+  const [markReadBehavior, setMarkReadBehavior] = useState<'manual' | 'auto'>('auto');
+  const [showConfirmation, setShowConfirmation] = useState(true);
+
+  return (
+    <div className="max-w-xl">
+      <h2 className="text-base font-bold text-gray-900 mb-4">Als gelesen markieren</h2>
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-sm font-medium text-gray-900 mb-3">Kanal automatisch als gelesen markieren</h3>
+          <div className="space-y-3">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input type="radio" name="markRead" checked={markReadBehavior === 'auto'}
+                onChange={() => setMarkReadBehavior('auto')} className="w-4 h-4 text-blue-600" />
+              <div>
+                <span className="text-sm text-gray-900">Automatisch</span>
+                <p className="text-xs text-gray-500 mt-0.5">Kanal wird als gelesen markiert, wenn du ihn oeffnest</p>
+              </div>
+            </label>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input type="radio" name="markRead" checked={markReadBehavior === 'manual'}
+                onChange={() => setMarkReadBehavior('manual')} className="w-4 h-4 text-blue-600" />
+              <div>
+                <span className="text-sm text-gray-900">Manuell</span>
+                <p className="text-xs text-gray-500 mt-0.5">Du markierst Kanaele manuell als gelesen</p>
+              </div>
+            </label>
+          </div>
+        </div>
+        <div>
+          <label className="flex items-center justify-between">
+            <div>
+              <span className="text-sm text-gray-900 block">Bestaetigung beim Markieren von vielen Nachrichten</span>
+              <span className="text-xs text-gray-500">Zeige eine Bestaetigung, wenn du viele Nachrichten auf einmal als gelesen markierst</span>
+            </div>
+            <input type="checkbox" checked={showConfirmation}
+              onChange={(e) => setShowConfirmation(e.target.checked)} className="w-5 h-5 rounded" />
+          </label>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AudioVideoSettings() {
+  const [camera, setCamera] = useState('default');
+  const [microphone, setMicrophone] = useState('default');
+  const [speaker, setSpeaker] = useState('default');
+  const [autoGain, setAutoGain] = useState(true);
+  const [backgroundBlur, setBackgroundBlur] = useState(false);
+  const [screenShareOnCall, setScreenShareOnCall] = useState(true);
+  const [huddle, setHuddle] = useState({
+    noiseCancel: true,
+    speakerMode: false,
+    recordCall: false,
+  });
+
+  return (
+    <div className="max-w-xl">
+      <h2 className="text-base font-bold text-gray-900 mb-4">Audio und Video</h2>
+      <div className="space-y-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Kamera</label>
+          <select value={camera} onChange={(e) => setCamera(e.target.value)}
+            className="rounded-md border px-3 py-2 text-sm w-full max-w-xs">
+            <option value="default">Systemstandard</option>
+            <option value="camera1">Eingebaute Kamera</option>
+            <option value="camera2">USB Kamera</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Mikrofon</label>
+          <select value={microphone} onChange={(e) => setMicrophone(e.target.value)}
+            className="rounded-md border px-3 py-2 text-sm w-full max-w-xs">
+            <option value="default">Systemstandard</option>
+            <option value="mic1">Eingebautes Mikrofon</option>
+            <option value="mic2">USB Kopfhoerer</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Lautsprecher</label>
+          <select value={speaker} onChange={(e) => setSpeaker(e.target.value)}
+            className="rounded-md border px-3 py-2 text-sm w-full max-w-xs">
+            <option value="default">Systemstandard</option>
+            <option value="speaker1">Eingebaute Lautsprecher</option>
+            <option value="speaker2">Kopfhoerer</option>
+          </select>
+        </div>
+        <div className="border-t pt-4">
+          <h3 className="text-sm font-medium text-gray-900 mb-3">Audio-Einstellungen</h3>
+          <div className="space-y-3">
+            <label className="flex items-center justify-between">
+              <div>
+                <span className="text-sm text-gray-900 block">Automatische Verstaerkung</span>
+                <span className="text-xs text-gray-500">Verstaerkt automatisch ruhige Audio</span>
+              </div>
+              <input type="checkbox" checked={autoGain}
+                onChange={(e) => setAutoGain(e.target.checked)} className="w-5 h-5 rounded" />
+            </label>
+          </div>
+        </div>
+        <div className="border-t pt-4">
+          <h3 className="text-sm font-medium text-gray-900 mb-3">Video-Einstellungen</h3>
+          <div className="space-y-3">
+            <label className="flex items-center justify-between">
+              <div>
+                <span className="text-sm text-gray-900 block">Hintergrund verschwommen</span>
+                <span className="text-xs text-gray-500">Unschaerfe den Hintergrund waehrend Anrufen</span>
+              </div>
+              <input type="checkbox" checked={backgroundBlur}
+                onChange={(e) => setBackgroundBlur(e.target.checked)} className="w-5 h-5 rounded" />
+            </label>
+          </div>
+        </div>
+        <div className="border-t pt-4">
+          <h3 className="text-sm font-medium text-gray-900 mb-3">Huddle-Einstellungen</h3>
+          <div className="space-y-3">
+            <label className="flex items-center justify-between">
+              <span className="text-sm text-gray-900">Laermunterdruckung</span>
+              <input type="checkbox" checked={huddle.noiseCancel}
+                onChange={(e) => setHuddle({ ...huddle, noiseCancel: e.target.checked })} className="w-5 h-5 rounded" />
+            </label>
+            <label className="flex items-center justify-between">
+              <span className="text-sm text-gray-900">Sprechermodus</span>
+              <input type="checkbox" checked={huddle.speakerMode}
+                onChange={(e) => setHuddle({ ...huddle, speakerMode: e.target.checked })} className="w-5 h-5 rounded" />
+            </label>
+            <label className="flex items-center justify-between">
+              <span className="text-sm text-gray-900">Anruf aufzeichnen</span>
+              <input type="checkbox" checked={huddle.recordCall}
+                onChange={(e) => setHuddle({ ...huddle, recordCall: e.target.checked })} className="w-5 h-5 rounded" />
+            </label>
+            <label className="flex items-center justify-between">
+              <span className="text-sm text-gray-900">Bildschirm freigeben beim Anruf</span>
+              <input type="checkbox" checked={screenShareOnCall}
+                onChange={(e) => setScreenShareOnCall(e.target.checked)} className="w-5 h-5 rounded" />
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PrivacySettings() {
+  const [discoverability, setDiscoverability] = useState<'all' | 'none'>('all');
+  const [contactSharing, setContactSharing] = useState<'all' | 'workspace' | 'none'>('workspace');
+
+  return (
+    <div className="max-w-xl">
+      <h2 className="text-base font-bold text-gray-900 mb-4">Datenschutz und Transparenz</h2>
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-sm font-medium text-gray-900 mb-3">Auffindbarkeit</h3>
+          <div className="space-y-3">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input type="radio" name="discoverability" checked={discoverability === 'all'}
+                onChange={() => setDiscoverability('all')} className="mt-0.5 w-4 h-4 text-blue-600" />
+              <div>
+                <span className="text-sm text-gray-900">Fuer alle sichtbar</span>
+                <p className="text-xs text-gray-500 mt-0.5">Dein Profil ist oeffentlich sichtbar und kann von allen Benutzern gefunden werden</p>
+              </div>
+            </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input type="radio" name="discoverability" checked={discoverability === 'none'}
+                onChange={() => setDiscoverability('none')} className="mt-0.5 w-4 h-4 text-blue-600" />
+              <div>
+                <span className="text-sm text-gray-900">Nur fuer Workspace-Mitglieder</span>
+                <p className="text-xs text-gray-500 mt-0.5">Nur Mitglieder deines Workspaces koennen dein Profil sehen</p>
+              </div>
+            </label>
+          </div>
+        </div>
+        <div className="border-t pt-4">
+          <h3 className="text-sm font-medium text-gray-900 mb-3">Kontaktinformationen teilen</h3>
+          <div className="space-y-3">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input type="radio" name="contactSharing" checked={contactSharing === 'all'}
+                onChange={() => setContactSharing('all')} className="mt-0.5 w-4 h-4 text-blue-600" />
+              <div>
+                <span className="text-sm text-gray-900">Mit allen teilen</span>
+                <p className="text-xs text-gray-500 mt-0.5">Deine E-Mail und Telefonnummer sind fuer alle Benutzer sichtbar</p>
+              </div>
+            </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input type="radio" name="contactSharing" checked={contactSharing === 'workspace'}
+                onChange={() => setContactSharing('workspace')} className="mt-0.5 w-4 h-4 text-blue-600" />
+              <div>
+                <span className="text-sm text-gray-900">Nur mit Workspace-Mitgliedern teilen</span>
+                <p className="text-xs text-gray-500 mt-0.5">Nur Mitglieder deines Workspaces koennen deine Kontaktinformationen sehen</p>
+              </div>
+            </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input type="radio" name="contactSharing" checked={contactSharing === 'none'}
+                onChange={() => setContactSharing('none')} className="mt-0.5 w-4 h-4 text-blue-600" />
+              <div>
+                <span className="text-sm text-gray-900">Nicht teilen</span>
+                <p className="text-xs text-gray-500 mt-0.5">Deine Kontaktinformationen werden nicht mit anderen Benutzern geteilt</p>
+              </div>
+            </label>
+          </div>
+        </div>
+        <div className="border-t pt-4">
+          <h3 className="text-sm font-medium text-gray-900 mb-3">Blockierte Einladungen</h3>
+          <p className="text-sm text-gray-700 mb-3">Benutzer, deren Einladungen du blockiert hast:</p>
+          <p className="text-sm text-gray-500 italic">Keine blockierten Benutzer</p>
+        </div>
+        <div className="border-t pt-4">
+          <h3 className="text-sm font-medium text-gray-900 mb-3">Verborgene Personen</h3>
+          <p className="text-sm text-gray-700 mb-3">Benutzer, die du verborgen hast:</p>
+          <p className="text-sm text-gray-500 italic">Keine verborgenen Benutzer</p>
+        </div>
       </div>
     </div>
   );

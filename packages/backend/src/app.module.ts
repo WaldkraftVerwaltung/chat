@@ -19,6 +19,7 @@ import { PresenceModule } from './presence/presence.module';
 import { UserGroupsModule } from './user-groups/user-groups.module';
 import { SavedItemsModule } from './saved-items/saved-items.module';
 import { DraftsModule } from './drafts/drafts.module';
+import { CallsModule } from './chat/calls.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { DraftsModule } from './drafts/drafts.module';
     UserGroupsModule,
     SavedItemsModule,
     DraftsModule,
+    CallsModule,
   ],
 })
 export class AppModule {}
