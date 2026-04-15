@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { Room, RoomOptions, VideoCodec, VideoPresets, Participant } from 'livekit-client';
+import { Room } from 'livekit-client';
 import { useCallStore } from '@/stores/call.store';
 import { apiFetch } from '@/lib/api';
 import { CallStage } from './CallStage';
@@ -40,16 +40,16 @@ export function CallWindow() {
 
   if (!active) return null;
 
-  const roomOptions: RoomOptions = {
+  const roomOptions: any = {
     adaptiveStream: true,
     dynacast: true,
     publishDefaults: {
-      videoCodec: 'vp9' as VideoCodec,
+      videoCodec: 'vp9',
       simulcast: true,
       videoSimulcastLayers: [
-        VideoPresets.h180,
-        VideoPresets.h360,
-        VideoPresets.h720,
+        { width: 320, height: 180 },
+        { width: 640, height: 360 },
+        { width: 1280, height: 720 },
       ],
       screenShareEncoding: {
         maxBitrate: 3_000_000,
@@ -57,7 +57,7 @@ export function CallWindow() {
       },
     },
     videoCaptureDefaults: {
-      resolution: VideoPresets.h720.resolution,
+      resolution: { width: 1280, height: 720 },
       facingMode: 'user',
     },
     audioCaptureDefaults: {

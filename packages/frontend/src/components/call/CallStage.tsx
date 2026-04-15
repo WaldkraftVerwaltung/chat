@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Room, RoomOptions, Participant, Track } from 'livekit-client';
+import { Room } from 'livekit-client';
 import {
   Mic,
   MicOff,
@@ -18,7 +18,7 @@ interface Props {
   url: string;
   channelId: string;
   mediaType: string;
-  roomOptions: RoomOptions;
+  roomOptions: any;
   onError: (error: string) => void;
   onEnd: () => void;
 }
