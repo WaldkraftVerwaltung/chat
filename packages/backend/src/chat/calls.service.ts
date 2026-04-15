@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AccessToken } from 'livekit-server-sdk';
+import * as jwt from 'jsonwebtoken';
 import { Channel } from '../database/entities/channel.entity';
 import { User } from '../database/entities/user.entity';
 
@@ -56,20 +56,28 @@ export class CallsService {
     const displayName = `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.email || userId;
 
     const room = this.roomName(channelId);
-    const at = new AccessToken(this.apiKey, this.apiSecret, {
-      identity: userId,
-      name: displayName,
-      ttl: 60 * 60, // 1h
-    });
-    at.addGrant({
-      roomJoin: true,
-      room,
-      canPublish: true,
-      canSubscribe: true,
-      canPublishData: true,
-    });
 
-    const token = await at.toJwt();
+    // Create LiveKit JWT token with grants
+    const payload = {
+      iss: this.apiKey,
+      sub: userId,
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour
+      nbf: Math.floor(Date.now() / 1000),
+      video: {
+        roomJoin: true,
+        room,
+        canPublish: true,
+        canSubscribe: true,
+        canPublishData: true,
+      },
+      metadata: JSON.stringify({
+        identity: userId,
+        name: displayName,
+      }),
+    };
+
+    const token = jwt.sign(payload, this.apiSecret, { algorithm: 'HS256' });
     return { token, url: this.publicUrl, room, identity: userId };
   }
 }
