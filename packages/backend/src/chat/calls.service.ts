@@ -28,9 +28,13 @@ export class CallsService {
   private get apiSecret() {
     return process.env.LIVEKIT_API_SECRET || 'devsecretdevsecretdevsecretdevsecret';
   }
-  /** wss URL the client connects to. Exposed to the frontend as NEXT_PUBLIC_LIVEKIT_URL. */
+  /** WS URL that the BROWSER uses to connect. Must be publicly reachable. */
   get publicUrl() {
-    return process.env.LIVEKIT_URL || 'ws://localhost:7880';
+    // Prefer explicit public URL (NEXT_PUBLIC_LIVEKIT_URL) over the Docker-internal URL
+    return process.env.NEXT_PUBLIC_LIVEKIT_URL
+      || process.env.LIVEKIT_PUBLIC_URL
+      || process.env.LIVEKIT_URL
+      || 'ws://localhost:7880';
   }
 
   roomName(channelId: string): string {
