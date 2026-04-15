@@ -53,9 +53,9 @@ export function CallStage({
         roomRef.current = room;
 
         // Setup event listeners
-        room.on('participantConnected', (participant) => {
+        room.on('participantConnected', (participant: any) => {
           console.log('Participant connected:', participant.identity);
-          participant.on('trackSubscribed', (track) => {
+          participant.on('trackSubscribed', (track: any) => {
             console.log('Track subscribed:', track.kind);
             const element = document.createElement('video');
             element.autoplay = true;
@@ -66,7 +66,7 @@ export function CallStage({
             videoRefs.current.set(`${participant.identity}-${track.sid}`, el);
             containerRef.current?.appendChild(el);
           });
-          participant.on('trackUnsubscribed', (track) => {
+          participant.on('trackUnsubscribed', (track: any) => {
             const el = videoRefs.current.get(`${participant.identity}-${track.sid}`);
             if (el) {
               track.detach(el);
