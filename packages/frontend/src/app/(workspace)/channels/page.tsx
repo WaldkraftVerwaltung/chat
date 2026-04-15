@@ -126,7 +126,7 @@ export default function ChannelBrowserPage() {
                         onClick={() => router.push(`/channel/${ch.id}`)}
                         className="text-sm text-blue-600 hover:text-blue-800 font-medium"
                       >
-                        Oeffnen
+                        Öffnen
                       </button>
                     ) : (
                       <button

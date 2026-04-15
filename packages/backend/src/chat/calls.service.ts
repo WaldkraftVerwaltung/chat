@@ -47,9 +47,8 @@ export class CallsService {
     room: string;
     identity: string;
   }> {
-    const channel = await this.channelRepo.findOne({ where: { id: channelId } });
-    if (!channel) throw new NotFoundException('Channel not found');
-
+    // channelId may be a regular channel OR a DM conversation id — both are OK.
+    // We only need the caller's identity for the LiveKit token.
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 

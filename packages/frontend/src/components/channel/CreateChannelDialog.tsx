@@ -83,7 +83,7 @@ export function CreateChannelDialog({ isOpen, onClose }: CreateChannelDialogProp
                 <input type="radio" name="type" value="private" checked={type === 'private'} onChange={() => setType('private')} className="accent-slack-blue" />
                 <div>
                   <p className="text-sm font-medium">🔒 Privat</p>
-                  <p className="text-xs text-gray-500">Nur eingeladene Mitglieder koennen beitreten</p>
+                  <p className="text-xs text-gray-500">Nur eingeladene Mitglieder können beitreten</p>
                 </div>
               </label>
             </div>

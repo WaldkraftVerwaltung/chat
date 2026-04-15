@@ -28,11 +28,11 @@ export function DmHeaderMenu({ isOpen, onClose, onShowDetails, onShowProfile, on
     <div ref={ref} className="absolute right-0 top-full mt-1 w-72 rounded-lg bg-white shadow-2xl border border-gray-200 py-1 z-50">
       <button onClick={() => { onShowDetails(); onClose(); }}
         className="w-full px-4 py-2 text-sm text-left text-gray-900 hover:bg-gray-50">
-        Unterhaltungsdetails oeffnen
+        Unterhaltungsdetails öffnen
       </button>
       <button onClick={() => { onShowProfile(); onClose(); }}
         className="w-full px-4 py-2 text-sm text-left text-gray-900 hover:bg-gray-50">
-        Vollstaendiges Profil anzeigen
+        Vollständiges Profil anzeigen
       </button>
 
       <div className="border-t border-gray-100 my-1" />
@@ -57,11 +57,11 @@ export function DmHeaderMenu({ isOpen, onClose, onShowDetails, onShowProfile, on
 
       <button className="w-full px-4 py-2 text-sm text-left text-gray-900 hover:bg-gray-50 flex items-center gap-2">
         <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-        In geteilter Bildschirmansicht oeffnen
+        In geteilter Bildschirmansicht öffnen
       </button>
       <button className="w-full px-4 py-2 text-sm text-left text-gray-900 hover:bg-gray-50 flex items-center gap-2">
         <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-        In neuem Fenster oeffnen
+        In neuem Fenster öffnen
       </button>
 
       <div className="border-t border-gray-100 my-1" />

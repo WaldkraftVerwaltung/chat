@@ -22,9 +22,9 @@ const TRIGGERS = [
 const ACTIONS = [
   { id: 'send_message', label: 'Nachricht senden', icon: '📝', description: 'Sendet eine Nachricht in einen Channel oder als DM' },
   { id: 'create_channel', label: 'Channel erstellen', icon: '#', description: 'Erstellt automatisch einen neuen Channel' },
-  { id: 'show_form', label: 'Formular anzeigen', icon: '📋', description: 'Zeigt ein Eingabeformular fuer den Nutzer' },
+  { id: 'show_form', label: 'Formular anzeigen', icon: '📋', description: 'Zeigt ein Eingabeformular für den Nutzer' },
   { id: 'send_webhook', label: 'Externen Webhook aufrufen', icon: '🌐', description: 'Sendet einen HTTP-Request an eine URL' },
-  { id: 'add_reaction', label: 'Reaktion hinzufuegen', icon: '👍', description: 'Fuegt automatisch eine Emoji-Reaktion hinzu' },
+  { id: 'add_reaction', label: 'Reaktion hinzufügen', icon: '👍', description: 'Fuegt automatisch eine Emoji-Reaktion hinzu' },
 ];
 
 export default function WorkflowsPage() {
@@ -95,7 +95,7 @@ export default function WorkflowsPage() {
             <div>
               <h2 className="text-lg font-semibold mb-4">Wie soll der Workflow heissen?</h2>
               <input value={newWorkflow.name} onChange={(e) => setNewWorkflow({ ...newWorkflow, name: e.target.value })}
-                placeholder="z.B. Willkommensnachricht fuer neue Mitglieder"
+                placeholder="z.B. Willkommensnachricht für neue Mitglieder"
                 className="w-full rounded-lg border-2 border-gray-200 px-4 py-3 text-sm focus:border-slack-green outline-none" />
               <div className="mt-6 flex justify-end">
                 <button onClick={() => setStep(2)} disabled={!newWorkflow.name}
@@ -125,7 +125,7 @@ export default function WorkflowsPage() {
                 ))}
               </div>
               <div className="mt-6 flex justify-between">
-                <button onClick={() => setStep(1)} className="px-6 py-2 rounded-lg border hover:bg-gray-50">Zurueck</button>
+                <button onClick={() => setStep(1)} className="px-6 py-2 rounded-lg border hover:bg-gray-50">Zurück</button>
                 <button onClick={() => setStep(3)} disabled={!newWorkflow.trigger}
                   className="bg-slack-green text-white px-6 py-2 rounded-lg font-medium hover:bg-slack-green-hover disabled:opacity-50">Weiter</button>
               </div>
@@ -151,7 +151,7 @@ export default function WorkflowsPage() {
                 ))}
               </div>
               <div className="mt-6 flex justify-between">
-                <button onClick={() => setStep(2)} className="px-6 py-2 rounded-lg border hover:bg-gray-50">Zurueck</button>
+                <button onClick={() => setStep(2)} className="px-6 py-2 rounded-lg border hover:bg-gray-50">Zurück</button>
                 <button onClick={() => setStep(4)} disabled={!newWorkflow.action}
                   className="bg-slack-green text-white px-6 py-2 rounded-lg font-medium hover:bg-slack-green-hover disabled:opacity-50">Weiter</button>
               </div>
@@ -197,7 +197,7 @@ export default function WorkflowsPage() {
                 )}
               </div>
               <div className="mt-6 flex justify-between">
-                <button onClick={() => setStep(3)} className="px-6 py-2 rounded-lg border hover:bg-gray-50">Zurueck</button>
+                <button onClick={() => setStep(3)} className="px-6 py-2 rounded-lg border hover:bg-gray-50">Zurück</button>
                 <button onClick={saveWorkflow}
                   className="bg-slack-green text-white px-6 py-2 rounded-lg font-medium hover:bg-slack-green-hover">
                   Workflow speichern
@@ -251,7 +251,7 @@ export default function WorkflowsPage() {
                     className={`relative w-10 h-5 rounded-full transition-colors ${wf.enabled ? 'bg-slack-green' : 'bg-gray-300'}`}>
                     <div className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${wf.enabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
                   </button>
-                  <button onClick={() => deleteWorkflow(wf.id)} className="text-gray-400 hover:text-red-500 p-1" title="Loeschen">🗑️</button>
+                  <button onClick={() => deleteWorkflow(wf.id)} className="text-gray-400 hover:text-red-500 p-1" title="Löschen">🗑️</button>
                 </div>
               </div>
             ))}

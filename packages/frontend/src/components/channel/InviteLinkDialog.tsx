@@ -36,7 +36,7 @@ export function InviteLinkDialog({ channelId, channelName, onClose }: InviteLink
 
         <div className="px-6 py-5 space-y-4">
           <p className="text-sm text-gray-600">
-            Teile diesen Link mit Workspace-Mitgliedern, um sie direkt zum Channel zu fuehren.
+            Teile diesen Link mit Workspace-Mitgliedern, um sie direkt zum Channel zu führen.
           </p>
 
           <div className="flex items-center gap-2">
@@ -60,7 +60,7 @@ export function InviteLinkDialog({ channelId, channelName, onClose }: InviteLink
           </div>
 
           <p className="text-xs text-gray-400">
-            Dieser Link ist nur fuer Mitglieder dieses Workspaces zugaenglich.
+            Dieser Link ist nur für Mitglieder dieses Workspaces zugaenglich.
           </p>
         </div>
 
@@ -69,7 +69,7 @@ export function InviteLinkDialog({ channelId, channelName, onClose }: InviteLink
             onClick={onClose}
             className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
           >
-            Schliessen
+            Schließen
           </button>
         </div>
       </div>

@@ -105,7 +105,7 @@ export function StatusDialog({ isOpen, onClose }: StatusDialogProps) {
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 text-xl leading-none"
-            aria-label="Schliessen"
+            aria-label="Schließen"
           >
             &times;
           </button>
@@ -117,7 +117,7 @@ export function StatusDialog({ isOpen, onClose }: StatusDialogProps) {
             <button
               type="button"
               className="px-3 py-2 text-xl hover:bg-gray-100 transition-colors flex-shrink-0"
-              title="Emoji auswaehlen"
+              title="Emoji auswählen"
               onClick={() => {/* emoji picker placeholder */}}
             >
               {emoji || '😀'}
@@ -133,7 +133,7 @@ export function StatusDialog({ isOpen, onClose }: StatusDialogProps) {
                 type="button"
                 onClick={() => { setEmoji(''); setText(''); }}
                 className="px-3 py-2 text-gray-400 hover:text-gray-600 flex-shrink-0"
-                title="Zuruecksetzen"
+                title="Zurücksetzen"
               >
                 ⊗
               </button>
@@ -164,13 +164,13 @@ export function StatusDialog({ isOpen, onClose }: StatusDialogProps) {
               onChange={(e) => setExpiry(e.target.value as ExpiryOption)}
               className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="never">Nicht loeschen</option>
+              <option value="never">Nicht löschen</option>
               <option value="30m">30 Minuten</option>
               <option value="1h">1 Stunde</option>
               <option value="4h">4 Stunden</option>
               <option value="today">Heute</option>
               <option value="week">Diese Woche</option>
-              <option value="custom">Datum und Zeit auswaehlen</option>
+              <option value="custom">Datum und Zeit auswählen</option>
             </select>
           </div>
         </div>
@@ -181,7 +181,7 @@ export function StatusDialog({ isOpen, onClose }: StatusDialogProps) {
             onClick={clearStatus}
             className="text-sm text-red-600 hover:underline font-medium"
           >
-            Status loeschen
+            Status löschen
           </button>
           <div className="flex gap-2">
             <button

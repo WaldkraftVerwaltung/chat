@@ -85,7 +85,7 @@ export default function DmPage() {
           <h1 className="text-base font-semibold text-gray-900 leading-tight">{dmName}</h1>
           {!isSelfNote && presence && (
             <p className="text-xs text-gray-500 leading-tight capitalize">
-              {presence === 'active' ? 'Online' : presence === 'dnd' ? 'Bitte nicht stoeren' : 'Abwesend'}
+              {presence === 'active' ? 'Online' : presence === 'dnd' ? 'Bitte nicht stören' : 'Abwesend'}
             </p>
           )}
         </div>
@@ -94,6 +94,26 @@ export default function DmPage() {
         <div className="flex items-center gap-0.5 ml-auto">
           {/* Mute/Unmute notifications */}
           <MuteButton conversationId={dmId} />
+          {/* Voice-Call */}
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('start-call', { detail: { channelId: dmId, mediaType: 'audio' } }))}
+            title="Sprach-Anruf starten"
+            className="p-2 rounded hover:bg-slack-msg-hover text-slack-gray-text"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            </svg>
+          </button>
+          {/* Video-Call */}
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('start-call', { detail: { channelId: dmId, mediaType: 'video' } }))}
+            title="Video-Anruf starten"
+            className="p-2 rounded hover:bg-slack-msg-hover text-slack-gray-text"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </button>
           {/* Search */}
           <button onClick={() => useSearchStore.getState().open()} title="Suchen" className="p-2 rounded hover:bg-slack-msg-hover text-slack-gray-text">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
@@ -110,7 +130,7 @@ export default function DmPage() {
               isStarred={useChannelsStore.getState().starredChannelIds.includes(dmId)} />
           </div>
           {/* Close */}
-          <button onClick={() => window.history.back()} title="Schliessen" className="p-2 rounded hover:bg-slack-msg-hover text-slack-gray-text">
+          <button onClick={() => window.history.back()} title="Schließen" className="p-2 rounded hover:bg-slack-msg-hover text-slack-gray-text">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
@@ -122,10 +142,17 @@ export default function DmPage() {
           <span className="w-2 h-2 rounded-full bg-gray-900" />
           Nachrichten
         </button>
-        <button className="text-sm text-gray-500 hover:text-gray-700 pb-1 flex items-center gap-1.5">
-          Canvas hinzufuegen
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('open-canvas', { detail: { channelId: dmId } }))}
+          className="text-sm text-gray-500 hover:text-gray-700 pb-1 flex items-center gap-1.5"
+        >
+          Canvas hinzufügen
         </button>
-        <button className="text-sm text-gray-400 hover:text-gray-600 pb-1">+</button>
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('open-canvas', { detail: { channelId: dmId } }))}
+          title="Neues Element hinzufügen"
+          className="text-sm text-gray-400 hover:text-gray-600 pb-1"
+        >+</button>
       </div>
 
       <div className="flex flex-1 overflow-hidden">

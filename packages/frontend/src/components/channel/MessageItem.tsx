@@ -101,7 +101,7 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
     return (
       <div className="px-5 py-1.5 flex gap-3">
         <div className="w-9 flex-shrink-0" />
-        <p className="text-sm text-slack-gray-text italic">Diese Nachricht wurde geloescht.</p>
+        <p className="text-sm text-slack-gray-text italic">Diese Nachricht wurde gelöscht.</p>
       </div>
     );
   }
@@ -147,7 +147,7 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
   }
 
   function handleDelete() {
-    if (!window.confirm('Nachricht endgueltig loeschen?')) return;
+    if (!window.confirm('Nachricht endgueltig löschen?')) return;
     try {
       getSocket().emit('message:delete', { messageId: message.id, channelId });
       useMessagesStore.getState().removeMessage(channelId, message.id);
@@ -320,7 +320,7 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
         {/* Floating action bar */}
         {showActions && !isEditing && (
           <div className="absolute right-4 -top-3 flex items-center rounded-lg border border-slack-border bg-white shadow-md z-10">
-            <ActionButton icon="&#128512;" title="Reaktion hinzufuegen" onClick={() => setShowEmojiPicker(!showEmojiPicker)} />
+            <ActionButton icon="&#128512;" title="Reaktion hinzufügen" onClick={() => setShowEmojiPicker(!showEmojiPicker)} />
             <ActionButton icon="&#128172;" title="Im Thread antworten" onClick={handleOpenThread} />
             <ActionButton icon="&#128204;" title={message.isPinned ? 'Losloesung aufheben' : 'Anpinnen'} onClick={handlePin} />
             <ActionButton icon="&#128278;" title="Speichern" onClick={handleSave} />
@@ -328,7 +328,7 @@ export function MessageItem({ message, channelId, isGrouped = false }: MessageIt
               <ActionButton icon="&#9998;" title="Bearbeiten" onClick={() => { setIsEditing(true); setEditContent(message.content); }} />
             )}
             {isOwn && (
-              <ActionButton icon="&#128465;" title="Loeschen" onClick={handleDelete} />
+              <ActionButton icon="&#128465;" title="Löschen" onClick={handleDelete} />
             )}
             <div className="relative">
               <ActionButton icon="&#8943;" title="Mehr" onClick={() => setShowMoreMenu(!showMoreMenu)} />

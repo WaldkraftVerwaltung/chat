@@ -51,7 +51,7 @@ export function MessageContextMenu({
 
   const menuItems: { label: string; icon: string; onClick: () => void; danger?: boolean; divider?: boolean }[] = [
     { label: 'Im Thread antworten', icon: '💬', onClick: onReplyInThread },
-    { label: 'Fuer spaeter speichern', icon: '🔖', onClick: onSave },
+    { label: 'Für später speichern', icon: '🔖', onClick: onSave },
     { label: 'An Channel weiterleiten...', icon: '↗️', onClick: onForward },
     { label: 'Link kopieren', icon: '🔗', onClick: onCopyLink },
     { label: 'Text kopieren', icon: '📋', onClick: onCopyText },
@@ -65,7 +65,7 @@ export function MessageContextMenu({
 
   if (isOwn) {
     menuItems.push({ label: 'Bearbeiten', icon: '✏️', onClick: onEdit! });
-    menuItems.push({ label: 'Loeschen', icon: '🗑️', onClick: onDelete!, danger: true });
+    menuItems.push({ label: 'Löschen', icon: '🗑️', onClick: onDelete!, danger: true });
   }
 
   return (

@@ -30,7 +30,7 @@ export function ProfileMenu() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  const presenceLabel = { active: 'Aktiv', away: 'Abwesend', dnd: 'Nicht stoeren' }[presence];
+  const presenceLabel = { active: 'Aktiv', away: 'Abwesend', dnd: 'Nicht stören' }[presence];
   const presenceColor = { active: 'bg-green-500', away: 'bg-gray-400', dnd: 'bg-red-500' }[presence];
   const isAway = presence === 'away';
 

@@ -30,7 +30,7 @@ export function ProfilePanel({ isOpen, onClose, onOpenStatus }: ProfilePanelProp
 
   if (!isOpen || !user) return null;
 
-  const presenceLabel = { active: 'Aktiv', away: 'Abwesend', dnd: 'Nicht stoeren' }[presence];
+  const presenceLabel = { active: 'Aktiv', away: 'Abwesend', dnd: 'Nicht stören' }[presence];
   const now = new Date();
   const localTime = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 
@@ -79,7 +79,7 @@ export function ProfilePanel({ isOpen, onClose, onOpenStatus }: ProfilePanelProp
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-500">Vollstaendiger Name</label>
+                <label className="text-xs font-medium text-gray-500">Vollständiger Name</label>
                 <input
                   value={editData.fullName}
                   onChange={(e) => setEditData({ ...editData, fullName: e.target.value })}
@@ -124,7 +124,7 @@ export function ProfilePanel({ isOpen, onClose, onOpenStatus }: ProfilePanelProp
                 <p className="text-sm text-gray-500 mt-0.5">{(user as any).title}</p>
               )}
               <button className="text-sm text-blue-700 hover:underline mt-1">
-                + Aussprache des Namens hinzufuegen
+                + Aussprache des Namens hinzufügen
               </button>
             </>
           )}
@@ -200,7 +200,7 @@ export function ProfilePanel({ isOpen, onClose, onOpenStatus }: ProfilePanelProp
               onClick={() => setIsEditing(true)}
               className="text-sm text-blue-700 hover:underline"
             >
-              + Telefon hinzufuegen
+              + Telefon hinzufügen
             </button>
           )}
         </div>
@@ -212,7 +212,7 @@ export function ProfilePanel({ isOpen, onClose, onOpenStatus }: ProfilePanelProp
             <button className="text-sm text-blue-700 hover:underline">Bearbeiten</button>
           </div>
           <button className="text-sm text-blue-700 hover:underline">
-            + Anfangsdatum hinzufuegen
+            + Anfangsdatum hinzufügen
           </button>
         </div>
       </div>

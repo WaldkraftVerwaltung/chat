@@ -16,7 +16,7 @@ const SECTIONS: { id: SettingsSection; label: string; icon: string }[] = [
   { id: 'audio-video', label: 'Audio und Video', icon: '🎥' },
   { id: 'privacy', label: 'Datenschutz und Transparenz', icon: '🔒' },
   { id: 'advanced', label: 'Erweitert', icon: '⚙️' },
-  { id: 'shortcuts', label: 'Tastenkuerzel', icon: '⌨️' },
+  { id: 'shortcuts', label: 'Tastenkürzel', icon: '⌨️' },
 ];
 
 export default function SettingsPage() {
@@ -56,7 +56,7 @@ export default function SettingsPage() {
         {activeSection === 'accessibility' && <AccessibilitySettings />}
         {activeSection === 'read-status' && <ReadStatusSettings />}
         {activeSection === 'audio-video' && <AudioVideoSettings />}
-        {activeSection === 'privacy' && <PrivacySettings />}
+        {activeSection === 'privacy' && <DatenschutzSettings />}
         {activeSection === 'advanced' && <AdvancedSettings />}
         {activeSection === 'shortcuts' && <KeyboardShortcuts />}
       </div>
@@ -73,15 +73,15 @@ function NavigationSettings() {
   return (
     <div className="max-w-xl">
       <h2 className="text-base font-bold text-gray-900 mb-1">Diese Tabs in der Navigationsleiste anzeigen:</h2>
-      <p className="text-sm text-gray-500 mb-4">Bei geringeren Fenstergroessen werden moeglicherweise nicht alle ausgewaehlten Tabs angezeigt.</p>
+      <p className="text-sm text-gray-500 mb-4">Bei geringeren Fenstergrößen werden möglicherweise nicht alle ausgewählten Tabs angezeigt.</p>
 
       <div className="space-y-3 mb-8">
         {[
           { key: 'home', label: 'Home', icon: '🏠' },
           { key: 'dms', label: 'DMs', icon: '💬' },
-          { key: 'activity', label: 'Aktivitaet', icon: '🔔' },
+          { key: 'activity', label: 'Aktivität', icon: '🔔' },
           { key: 'files', label: 'Dateien', icon: '📁' },
-          { key: 'later', label: 'Spaeter', icon: '🔖' },
+          { key: 'later', label: 'Später', icon: '🔖' },
           { key: 'tools', label: 'Tools', icon: '🔧' },
         ].map((item) => (
           <label key={item.key} className="flex items-center gap-3 cursor-pointer">
@@ -188,7 +188,7 @@ function NotificationSettings() {
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="radio" name="desktopNotif" className="w-4 h-4" />
-              <span className="text-sm">Nur Erwaehnungen und DMs</span>
+              <span className="text-sm">Nur Erwähnungen und DMs</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="radio" name="desktopNotif" className="w-4 h-4" />
@@ -228,7 +228,7 @@ function AccessibilitySettings() {
           <input type="checkbox" className="w-5 h-5 rounded" />
         </label>
         <label className="flex items-center justify-between">
-          <span className="text-sm text-gray-900">Tastenkuerzel anzeigen</span>
+          <span className="text-sm text-gray-900">Tastenkürzel anzeigen</span>
           <input type="checkbox" defaultChecked className="w-5 h-5 rounded" />
         </label>
       </div>
@@ -244,7 +244,7 @@ function AdvancedSettings() {
         <label className="flex items-center justify-between">
           <div>
             <span className="text-sm text-gray-900 block">Link-Vorschauen anzeigen</span>
-            <span className="text-xs text-gray-500">Zeigt Vorschauen fuer geteilte Links</span>
+            <span className="text-xs text-gray-500">Zeigt Vorschauen für geteilte Links</span>
           </div>
           <input type="checkbox" defaultChecked className="w-5 h-5 rounded" />
         </label>
@@ -268,7 +268,7 @@ function KeyboardShortcuts() {
     {
       title: 'Navigation',
       shortcuts: [
-        { keys: [`${mod}K`], description: 'Schnellwechsler / Suche oeffnen' },
+        { keys: [`${mod}K`], description: 'Schnellwechsler / Suche öffnen' },
         { keys: [`${mod},`], description: 'Persoenliche Einstellungen' },
         { keys: [`${mod}Shift+J`], description: 'Downloads anzeigen' },
         { keys: ['Esc'], description: 'Aktiven Kanal als gelesen markieren' },
@@ -297,15 +297,15 @@ function KeyboardShortcuts() {
       title: 'In Channels',
       shortcuts: [
         { keys: [`${mod}Shift+M`], description: 'Kanal stummschalten / Stummschaltung aufheben' },
-        { keys: [`${mod}Shift+S`], description: 'Stern zum Kanal hinzufuegen' },
+        { keys: [`${mod}Shift+S`], description: 'Stern zum Kanal hinzufügen' },
       ],
     },
   ];
 
   return (
     <div className="max-w-xl">
-      <h2 className="text-base font-bold text-gray-900 mb-1">Tastenkuerzel</h2>
-      <p className="text-sm text-gray-500 mb-6">Alle verfuegbaren Tastenkombinationen auf einen Blick.</p>
+      <h2 className="text-base font-bold text-gray-900 mb-1">Tastenkürzel</h2>
+      <p className="text-sm text-gray-500 mb-6">Alle verfügbaren Tastenkombinationen auf einen Blick.</p>
 
       <div className="space-y-6">
         {groups.map((group) => (
@@ -351,7 +351,7 @@ function ReadStatusSettings() {
                 onChange={() => setMarkReadBehavior('auto')} className="w-4 h-4 text-blue-600" />
               <div>
                 <span className="text-sm text-gray-900">Automatisch</span>
-                <p className="text-xs text-gray-500 mt-0.5">Kanal wird als gelesen markiert, wenn du ihn oeffnest</p>
+                <p className="text-xs text-gray-500 mt-0.5">Kanal wird als gelesen markiert, wenn du ihn öffnest</p>
               </div>
             </label>
             <label className="flex items-center gap-3 cursor-pointer">
@@ -367,8 +367,8 @@ function ReadStatusSettings() {
         <div>
           <label className="flex items-center justify-between">
             <div>
-              <span className="text-sm text-gray-900 block">Bestaetigung beim Markieren von vielen Nachrichten</span>
-              <span className="text-xs text-gray-500">Zeige eine Bestaetigung, wenn du viele Nachrichten auf einmal als gelesen markierst</span>
+              <span className="text-sm text-gray-900 block">Bestätigung beim Markieren von vielen Nachrichten</span>
+              <span className="text-xs text-gray-500">Zeige eine Bestätigung, wenn du viele Nachrichten auf einmal als gelesen markierst</span>
             </div>
             <input type="checkbox" checked={showConfirmation}
               onChange={(e) => setShowConfirmation(e.target.checked)} className="w-5 h-5 rounded" />
@@ -442,7 +442,7 @@ function AudioVideoSettings() {
             <label className="flex items-center justify-between">
               <div>
                 <span className="text-sm text-gray-900 block">Hintergrund verschwommen</span>
-                <span className="text-xs text-gray-500">Unschaerfe den Hintergrund waehrend Anrufen</span>
+                <span className="text-xs text-gray-500">Unschaerfe den Hintergrund während Anrufen</span>
               </div>
               <input type="checkbox" checked={backgroundBlur}
                 onChange={(e) => setBackgroundBlur(e.target.checked)} className="w-5 h-5 rounded" />
@@ -479,7 +479,7 @@ function AudioVideoSettings() {
   );
 }
 
-function PrivacySettings() {
+function DatenschutzSettings() {
   const [discoverability, setDiscoverability] = useState<'all' | 'none'>('all');
   const [contactSharing, setContactSharing] = useState<'all' | 'workspace' | 'none'>('workspace');
 
@@ -494,7 +494,7 @@ function PrivacySettings() {
               <input type="radio" name="discoverability" checked={discoverability === 'all'}
                 onChange={() => setDiscoverability('all')} className="mt-0.5 w-4 h-4 text-blue-600" />
               <div>
-                <span className="text-sm text-gray-900">Fuer alle sichtbar</span>
+                <span className="text-sm text-gray-900">Für alle sichtbar</span>
                 <p className="text-xs text-gray-500 mt-0.5">Dein Profil ist oeffentlich sichtbar und kann von allen Benutzern gefunden werden</p>
               </div>
             </label>
@@ -502,8 +502,8 @@ function PrivacySettings() {
               <input type="radio" name="discoverability" checked={discoverability === 'none'}
                 onChange={() => setDiscoverability('none')} className="mt-0.5 w-4 h-4 text-blue-600" />
               <div>
-                <span className="text-sm text-gray-900">Nur fuer Workspace-Mitglieder</span>
-                <p className="text-xs text-gray-500 mt-0.5">Nur Mitglieder deines Workspaces koennen dein Profil sehen</p>
+                <span className="text-sm text-gray-900">Nur für Workspace-Mitglieder</span>
+                <p className="text-xs text-gray-500 mt-0.5">Nur Mitglieder deines Workspaces können dein Profil sehen</p>
               </div>
             </label>
           </div>
@@ -516,7 +516,7 @@ function PrivacySettings() {
                 onChange={() => setContactSharing('all')} className="mt-0.5 w-4 h-4 text-blue-600" />
               <div>
                 <span className="text-sm text-gray-900">Mit allen teilen</span>
-                <p className="text-xs text-gray-500 mt-0.5">Deine E-Mail und Telefonnummer sind fuer alle Benutzer sichtbar</p>
+                <p className="text-xs text-gray-500 mt-0.5">Deine E-Mail und Telefonnummer sind für alle Benutzer sichtbar</p>
               </div>
             </label>
             <label className="flex items-start gap-3 cursor-pointer">
@@ -524,7 +524,7 @@ function PrivacySettings() {
                 onChange={() => setContactSharing('workspace')} className="mt-0.5 w-4 h-4 text-blue-600" />
               <div>
                 <span className="text-sm text-gray-900">Nur mit Workspace-Mitgliedern teilen</span>
-                <p className="text-xs text-gray-500 mt-0.5">Nur Mitglieder deines Workspaces koennen deine Kontaktinformationen sehen</p>
+                <p className="text-xs text-gray-500 mt-0.5">Nur Mitglieder deines Workspaces können deine Kontaktinformationen sehen</p>
               </div>
             </label>
             <label className="flex items-start gap-3 cursor-pointer">

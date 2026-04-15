@@ -14,6 +14,8 @@ import { ToastProvider } from '@/components/ui/Toast';
 import { ResizeHandle } from '@/components/ui/ResizeHandle';
 import { TopBar } from '@/components/layout/TopBar';
 import { CallWindow } from '@/components/call/CallWindow';
+import { CallLauncher } from '@/components/call/CallLauncher';
+import { CanvasModal } from '@/components/channel/CanvasModal';
 
 const SIDEBAR_MIN = 220;
 const SIDEBAR_MAX = 480;
@@ -54,6 +56,8 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
     <ToastProvider>
       <SearchModal />
       <CallWindow />
+      <CallLauncher />
+      <CanvasModal />
       <div className="flex flex-col h-screen">
         <TopBar />
         <div className="flex flex-1 overflow-hidden">

@@ -68,7 +68,7 @@ export function ChannelDetailsPanel({ channelId, channelName, topic, description
             {members.map((m: any) => {
               const presence = m.userId ? presenceMap[m.userId] : undefined;
               const presenceColor = presence === 'active' ? 'bg-green-500' : presence === 'dnd' ? 'bg-red-500' : 'bg-gray-400';
-              const presenceLabel = presence === 'active' ? 'Online' : presence === 'dnd' ? 'Nicht stoeren' : 'Abwesend';
+              const presenceLabel = presence === 'active' ? 'Online' : presence === 'dnd' ? 'Nicht stören' : 'Abwesend';
               return (
                 <div key={m.userId} className="flex items-center gap-2.5 py-1.5 px-1 rounded hover:bg-gray-50 transition-colors">
                   <div className="relative flex-shrink-0">

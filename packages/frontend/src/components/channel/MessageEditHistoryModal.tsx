@@ -36,7 +36,7 @@ export function MessageEditHistoryModal({ messageId, onClose }: MessageEditHisto
           {loading ? (
             <p className="text-sm text-gray-400 text-center py-4">Laden...</p>
           ) : edits.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-4">Kein Bearbeitungs-Verlauf verfuegbar.</p>
+            <p className="text-sm text-gray-500 text-center py-4">Kein Bearbeitungs-Verlauf verfügbar.</p>
           ) : (
             edits.map((edit, i) => (
               <div key={edit.id} className="rounded-lg bg-gray-50 border border-gray-200 p-4">
@@ -59,7 +59,7 @@ export function MessageEditHistoryModal({ messageId, onClose }: MessageEditHisto
 
         <div className="flex justify-end px-6 py-4 border-t flex-shrink-0">
           <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
-            Schliessen
+            Schließen
           </button>
         </div>
       </div>

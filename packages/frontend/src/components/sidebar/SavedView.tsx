@@ -54,7 +54,7 @@ export function SavedView() {
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       <div className="px-3 py-2 flex-shrink-0">
-        <h2 className="text-sm font-semibold text-slack-text-bright">Spaeter</h2>
+        <h2 className="text-sm font-semibold text-slack-text-bright">Später</h2>
       </div>
 
       {/* Status tabs */}
@@ -101,7 +101,7 @@ export function SavedView() {
                       onClick={() => navigateToMessage(item)}
                       className="text-xs text-slack-text line-clamp-2 cursor-pointer hover:text-white mt-0.5"
                     >
-                      {msg?.content || 'Nachricht nicht verfuegbar'}
+                      {msg?.content || 'Nachricht nicht verfügbar'}
                     </p>
                     {item.remindAt && (
                       <p className={`text-[10px] mt-0.5 flex items-center gap-1 ${

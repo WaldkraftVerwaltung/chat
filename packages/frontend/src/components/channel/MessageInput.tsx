@@ -32,8 +32,8 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
   const [pendingFile, setPendingFile] = useState<{ id: string; originalFilename: string; mimeType: string; sizeBytes: number; thumbnailKey: string | null } | null>(null);
   const [uploading, setUploading] = useState(false);
   const [sendError, setSendError] = useState(false);
-  const [showFormatBar, setShowFormatBar] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showPlusMenu, setShowPlusMenu] = useState(false);
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const [channelQuery, setChannelQuery] = useState<string | null>(null);
   const [mentionResults, setMentionResults] = useState<ChannelMember[]>([]);
@@ -44,9 +44,21 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
   const dragCounter = useRef(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const plusMenuRef = useRef<HTMLDivElement>(null);
   const typingTimeout = useRef<NodeJS.Timeout>();
   const draftTimeout = useRef<NodeJS.Timeout>();
   const unsentInterval = useRef<ReturnType<typeof setInterval>>();
+
+  // Close plus menu on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (plusMenuRef.current && !plusMenuRef.current.contains(e.target as Node)) {
+        setShowPlusMenu(false);
+      }
+    }
+    if (showPlusMenu) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showPlusMenu]);
 
   // Countdown timer for unsend banner
   useEffect(() => {
@@ -61,7 +73,7 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
     return () => clearInterval(unsentInterval.current);
   }, [unsent?.messageId]);
 
-  // Auto-resize textarea on content change
+  // Auto-resize textarea
   useEffect(() => {
     const el = textareaRef.current;
     if (el) {
@@ -70,7 +82,7 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
     }
   }, [content]);
 
-  // Load draft on channel mount
+  // Load draft
   useEffect(() => {
     apiFetch<any[]>('/drafts').then((drafts) => {
       const draft = drafts.find((d) =>
@@ -80,7 +92,6 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
     }).catch(() => {});
   }, [channelId, threadParentId]);
 
-  // Auto-save draft with 2s debounce
   const saveDraft = useCallback((value: string) => {
     clearTimeout(draftTimeout.current);
     draftTimeout.current = setTimeout(() => {
@@ -93,7 +104,6 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
     }, 2000);
   }, [channelId, threadParentId]);
 
-  // Fetch mention results
   useEffect(() => {
     if (mentionQuery === null) { setMentionResults([]); return; }
     apiFetch<ChannelMember[]>(`/channels/${channelId}/members?search=${encodeURIComponent(mentionQuery)}`)
@@ -101,7 +111,6 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
       .catch(() => setMentionResults([]));
   }, [mentionQuery, channelId]);
 
-  // Fetch channel results
   useEffect(() => {
     if (channelQuery === null) { setChannelResults([]); return; }
     apiFetch<ChannelRef[]>(`/channels?search=${encodeURIComponent(channelQuery)}`)
@@ -110,7 +119,6 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
   }, [channelQuery]);
 
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
-    // Handle mention/channel autocomplete navigation
     if (mentionQuery !== null && mentionResults.length > 0) {
       if (e.key === 'ArrowDown') { e.preventDefault(); setSelectedMentionIndex((i) => Math.min(i + 1, mentionResults.length - 1)); return; }
       if (e.key === 'ArrowUp') { e.preventDefault(); setSelectedMentionIndex((i) => Math.max(i - 1, 0)); return; }
@@ -132,7 +140,6 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
       if (e.key === 'Escape') { setChannelQuery(null); return; }
     }
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); return; }
-    // Arrow-up on empty input: edit last own message
     if (e.key === 'ArrowUp' && !content.trim()) {
       e.preventDefault();
       const msgs = useMessagesStore.getState().messagesByChannel[channelId] || [];
@@ -186,7 +193,6 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
     const text = content.trim();
     if (!text && !pendingFile) return;
 
-    // Optimistic update — show message immediately
     const tempId = 'temp-' + Date.now();
     const user = useAuthStore.getState().user;
     const optimisticMsg = {
@@ -212,7 +218,6 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
     setSendError(false);
     textareaRef.current?.focus();
 
-    // Clear draft
     clearTimeout(draftTimeout.current);
     apiFetch('/drafts', {
       method: 'PUT',
@@ -228,14 +233,11 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
         body: JSON.stringify(body),
       });
 
-      // Replace optimistic message with real one
       useMessagesStore.getState().removeMessage(channelId, tempId);
       useMessagesStore.getState().addMessage(channelId, saved);
-      // Start unsend countdown (15s)
       clearInterval(unsentInterval.current);
       setUnsent({ messageId: saved.id, countdown: 15 });
     } catch {
-      // Remove optimistic message on failure
       useMessagesStore.getState().removeMessage(channelId, tempId);
       setSendError(true);
     }
@@ -259,12 +261,9 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
       socket.emit('typing:start', { channelId });
       clearTimeout(typingTimeout.current);
       typingTimeout.current = setTimeout(() => { socket.emit('typing:stop', { channelId }); }, 3000);
-    } catch {
-      // Socket not ready — typing indicator is non-critical
-    }
+    } catch { /* ignore */ }
     saveDraft(value);
 
-    // Check for @mention trigger
     const textarea = textareaRef.current;
     if (textarea) {
       const pos = textarea.selectionStart;
@@ -352,37 +351,22 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
   }
 
   function handleDragEnter(e: React.DragEvent) {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault(); e.stopPropagation();
     dragCounter.current += 1;
-    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
-      setIsDragOver(true);
-    }
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) setIsDragOver(true);
   }
-
   function handleDragLeave(e: React.DragEvent) {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault(); e.stopPropagation();
     dragCounter.current -= 1;
-    if (dragCounter.current === 0) {
-      setIsDragOver(false);
-    }
+    if (dragCounter.current === 0) setIsDragOver(false);
   }
-
-  function handleDragOver(e: React.DragEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-
+  function handleDragOver(e: React.DragEvent) { e.preventDefault(); e.stopPropagation(); }
   async function handleDrop(e: React.DragEvent) {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault(); e.stopPropagation();
     setIsDragOver(false);
     dragCounter.current = 0;
     const file = e.dataTransfer.files?.[0];
-    if (file) {
-      await uploadFile(file);
-    }
+    if (file) await uploadFile(file);
   }
 
   function handleEmojiSelect(emoji: string) {
@@ -416,24 +400,9 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
     }, 0);
   }
 
-  async function startVideoMeeting() {
-    const roomId = Math.random().toString(36).substring(2, 8) + '-' +
-                   Math.random().toString(36).substring(2, 6) + '-' +
-                   Math.random().toString(36).substring(2, 5);
-    const meetUrl = `https://meet.google.com/${roomId}`;
-
-    try {
-      await apiFetch(`/channels/${channelId}/messages`, {
-        method: 'POST',
-        body: JSON.stringify({ content: `📹 Video-Meeting gestartet: ${meetUrl}\n\nKlicke auf den Link um beizutreten.` }),
-      });
-      window.open(meetUrl, '_blank');
-    } catch {}
-  }
-
   const canSend = !uploading && (content.trim().length > 0 || !!pendingFile);
   const placeholderText = channelName
-    ? `Nachricht an #${channelName}`
+    ? `Nachricht an ${channelName.startsWith('#') ? '' : ''}${channelName}`
     : 'Nachricht schreiben...';
 
   return (
@@ -444,7 +413,6 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
-      {/* Drag & Drop overlay */}
       {isDragOver && (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-slack-blue bg-blue-50/90 pointer-events-none">
           <svg className="w-10 h-10 text-slack-blue mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -455,7 +423,6 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
         </div>
       )}
 
-      {/* Unsend banner */}
       {unsent && (
         <div className="mb-2 flex items-center gap-2 rounded border border-green-200 bg-green-50 px-3 py-1.5 text-sm text-green-800">
           <svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -475,7 +442,6 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
         </div>
       )}
 
-      {/* Send error toast */}
       {sendError && (
         <div className="mb-2 flex items-center gap-2 rounded border border-red-200 bg-red-50 px-3 py-1.5 text-sm text-red-700">
           <span>Nachricht konnte nicht gesendet werden.</span>
@@ -483,7 +449,6 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
         </div>
       )}
 
-      {/* File preview */}
       {pendingFile && (
         <div className="mb-2 flex items-center gap-2 rounded border border-slack-border bg-gray-50 px-3 py-1.5 text-sm">
           <span className="truncate text-gray-700 max-w-[300px]">{pendingFile.originalFilename}</span>
@@ -491,10 +456,10 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
         </div>
       )}
 
-      <div className="rounded-lg border border-slack-input-border bg-white">
-        {/* Mention autocomplete dropdown */}
+      <div className="rounded-lg border border-gray-300 bg-white overflow-hidden">
+        {/* Mention autocomplete */}
         {mentionQuery !== null && mentionResults.length > 0 && (
-          <div className="border-b border-slack-border bg-white rounded-t-lg shadow-inner">
+          <div className="border-b border-gray-200 bg-white shadow-inner">
             {mentionResults.slice(0, 8).map((member, i) => (
               <button
                 key={member.id}
@@ -509,9 +474,9 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
           </div>
         )}
 
-        {/* Channel autocomplete dropdown */}
+        {/* Channel autocomplete */}
         {channelQuery !== null && channelResults.length > 0 && (
-          <div className="border-b border-slack-border bg-white rounded-t-lg shadow-inner">
+          <div className="border-b border-gray-200 bg-white shadow-inner">
             {channelResults.slice(0, 8).map((ch, i) => (
               <button
                 key={ch.id}
@@ -526,54 +491,73 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
           </div>
         )}
 
-        {/* Formatting toolbar (toggled by Aa button) */}
-        {showFormatBar && (
-          <div className="flex items-center gap-0.5 border-b border-slack-border px-2 py-1">
-            <FmtBtn title="Fett" onClick={() => wrapSelection('*', '*')}>
-              <span className="font-bold text-[13px]">B</span>
-            </FmtBtn>
-            <FmtBtn title="Kursiv" onClick={() => wrapSelection('_', '_')}>
-              <span className="italic text-[13px]">I</span>
-            </FmtBtn>
-            <FmtBtn title="Unterstrichen" onClick={() => wrapSelection('__', '__')}>
-              <span className="underline text-[13px]">U</span>
-            </FmtBtn>
-            <FmtBtn title="Durchgestrichen" onClick={() => wrapSelection('~', '~')}>
-              <span className="line-through text-[13px]">S</span>
-            </FmtBtn>
-            <Separator />
-            <FmtBtn title="Link" onClick={() => wrapSelection('[', '](url)')}>
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-              </svg>
-            </FmtBtn>
-            <FmtBtn title="Nummerierte Liste" onClick={() => prependLines('1. ')}>
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </FmtBtn>
-            <FmtBtn title="Aufzaehlung" onClick={() => prependLines('- ')}>
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
-              </svg>
-            </FmtBtn>
-            <Separator />
-            <FmtBtn title="Blockzitat" onClick={() => prependLines('> ')}>
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16h6M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </FmtBtn>
-            <FmtBtn title="Code" onClick={() => wrapSelection('`', '`')}>
-              <span className="font-mono text-xs">&lt;/&gt;</span>
-            </FmtBtn>
-            <FmtBtn title="Code-Block" onClick={() => wrapSelection('```\n', '\n```')}>
-              <span className="font-mono text-xs">{'{}'}</span>
-            </FmtBtn>
-          </div>
-        )}
+        {/* ═══════════════ OBERE FORMATTING-TOOLBAR (immer sichtbar) ═══════════════ */}
+        <div className="flex items-center gap-0 border-b border-gray-200 bg-gray-50 px-2 py-1.5">
+          <FmtBtn title="Fett" onClick={() => wrapSelection('*', '*')}>
+            <span className="font-bold text-[15px] leading-none" style={{ fontFamily: 'Georgia, serif' }}>B</span>
+          </FmtBtn>
+          <FmtBtn title="Kursiv" onClick={() => wrapSelection('_', '_')}>
+            <span className="italic text-[15px] leading-none" style={{ fontFamily: 'Georgia, serif' }}>I</span>
+          </FmtBtn>
+          <FmtBtn title="Unterstrichen" onClick={() => wrapSelection('__', '__')}>
+            <span className="underline text-[15px] leading-none" style={{ fontFamily: 'Georgia, serif' }}>U</span>
+          </FmtBtn>
+          <FmtBtn title="Durchgestrichen" onClick={() => wrapSelection('~', '~')}>
+            <span className="line-through text-[15px] leading-none" style={{ fontFamily: 'Georgia, serif' }}>S</span>
+          </FmtBtn>
+
+          <SepVertical />
+
+          <FmtBtn title="Link" onClick={() => wrapSelection('[', '](url)')}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+          </FmtBtn>
+          <FmtBtn title="Nummerierte Liste" onClick={() => prependLines('1. ')}>
+            <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+              <text x="0" y="7" fontSize="6" fontWeight="700">1</text>
+              <line x1="6" y1="5" x2="18" y2="5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              <text x="0" y="14" fontSize="6" fontWeight="700">2</text>
+              <line x1="6" y1="12" x2="18" y2="12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              <line x1="6" y1="19" x2="18" y2="19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          </FmtBtn>
+          <FmtBtn title="Aufzählung" onClick={() => prependLines('- ')}>
+            <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+              <circle cx="3" cy="5" r="1.3"/>
+              <line x1="7" y1="5" x2="18" y2="5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              <circle cx="3" cy="10" r="1.3"/>
+              <line x1="7" y1="10" x2="18" y2="10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              <circle cx="3" cy="15" r="1.3"/>
+              <line x1="7" y1="15" x2="18" y2="15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          </FmtBtn>
+
+          <SepVertical />
+
+          <FmtBtn title="Zitat" onClick={() => prependLines('> ')}>
+            <svg className="w-4 h-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.8}>
+              <line x1="3" y1="5" x2="5" y2="5" strokeLinecap="round"/>
+              <line x1="8" y1="5" x2="17" y2="5" strokeLinecap="round"/>
+              <line x1="3" y1="10" x2="5" y2="10" strokeLinecap="round"/>
+              <line x1="8" y1="10" x2="14" y2="10" strokeLinecap="round"/>
+              <line x1="3" y1="15" x2="5" y2="15" strokeLinecap="round"/>
+              <line x1="8" y1="15" x2="17" y2="15" strokeLinecap="round"/>
+            </svg>
+          </FmtBtn>
+          <FmtBtn title="Code" onClick={() => wrapSelection('`', '`')}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+            </svg>
+          </FmtBtn>
+          <FmtBtn title="Code-Block" onClick={() => wrapSelection('```\n', '\n```')}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h1m4 0h1m-7 4h.01M7 8h.01M19 8v8a2 2 0 01-2 2H7a2 2 0 01-2-2V8a2 2 0 012-2h10a2 2 0 012 2z" />
+            </svg>
+          </FmtBtn>
+        </div>
 
         {isRecordingVoice ? (
-          /* Voice recording UI replaces textarea + toolbar */
           <div className="px-3 py-2.5">
             <VoiceRecorder
               channelId={channelId}
@@ -584,121 +568,148 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
         ) : (
           <>
             {/* Textarea */}
-            <div className="px-3 py-2">
+            <div className="px-3 py-3">
               <textarea
                 ref={textareaRef}
                 value={content}
                 onChange={(e) => handleInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={placeholderText}
-                className="w-full resize-none bg-transparent text-sm text-gray-900 outline-none placeholder:text-slack-gray-text"
+                className="w-full resize-none bg-transparent text-[15px] text-gray-900 outline-none placeholder:text-gray-400"
                 rows={1}
-                style={{ minHeight: '24px', maxHeight: '200px' }}
+                style={{ minHeight: '22px', maxHeight: '200px' }}
               />
             </div>
 
-            {/* Bottom toolbar — always visible */}
-            <div className="flex items-center justify-between border-t border-slack-border px-1.5 py-1">
-              {/* Left side icons */}
-              <div className="flex items-center gap-0.5">
-                {/* Attach file */}
-                <ToolbarBtn
-                  title="Datei anhaengen"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                >
-                  {uploading ? (
-                    <span className="text-xs text-slack-gray-text">...</span>
-                  ) : (
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            {/* ═══════════════ UNTERE TOOLBAR ═══════════════ */}
+            <div className="flex items-center justify-between px-2 py-1.5">
+              {/* Left side */}
+              <div className="flex items-center gap-0">
+                {/* Plus button (im Kreis) */}
+                <div className="relative" ref={plusMenuRef}>
+                  <button
+                    onClick={() => setShowPlusMenu(!showPlusMenu)}
+                    title="Mehr hinzufügen"
+                    className={`flex items-center justify-center w-8 h-8 rounded-full transition-colors ${
+                      showPlusMenu ? 'bg-gray-200' : 'hover:bg-gray-100'
+                    } text-gray-700 border border-gray-300`}
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                     </svg>
+                  </button>
+                  {showPlusMenu && (
+                    <div className="absolute bottom-full left-0 mb-2 w-64 rounded-lg bg-white shadow-xl border border-gray-200 py-1.5 z-50">
+                      <button
+                        onClick={() => { fileInputRef.current?.click(); setShowPlusMenu(false); }}
+                        className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-3"
+                      >
+                        <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                        </svg>
+                        Datei hochladen
+                      </button>
+                      <button
+                        onClick={() => { window.dispatchEvent(new CustomEvent('open-canvas', { detail: { channelId } })); setShowPlusMenu(false); }}
+                        className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-3"
+                      >
+                        <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                        Canvas erstellen
+                      </button>
+                      <button
+                        onClick={() => { setIsRecordingVoice(true); setShowPlusMenu(false); }}
+                        className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-3"
+                      >
+                        <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                        </svg>
+                        Sprachnachricht aufnehmen
+                      </button>
+                    </div>
                   )}
-                </ToolbarBtn>
+                </div>
                 <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} />
 
-                {/* Format toggle (Aa) */}
-                <ToolbarBtn
-                  title="Formatierung"
-                  onClick={() => setShowFormatBar(!showFormatBar)}
-                  active={showFormatBar}
-                >
-                  <span className="text-sm font-semibold leading-none">Aa</span>
-                </ToolbarBtn>
+                {/* Aa Format (decorative) */}
+                <BottomBtn title="Formatierung">
+                  <span className="text-[14px] font-semibold text-gray-700 underline underline-offset-2 leading-none">Aa</span>
+                </BottomBtn>
 
-                {/* Emoji picker */}
+                {/* Emoji */}
                 <div className="relative">
-                  <ToolbarBtn
-                    title="Emoji"
-                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    active={showEmojiPicker}
-                  >
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <BottomBtn title="Emoji" onClick={() => setShowEmojiPicker(!showEmojiPicker)} active={showEmojiPicker}>
+                    <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                  </ToolbarBtn>
+                  </BottomBtn>
                   {showEmojiPicker && (
                     <div className="absolute bottom-full left-0 mb-2 z-50">
-                      <EmojiPicker
-                        onSelect={handleEmojiSelect}
-                        onClose={() => setShowEmojiPicker(false)}
-                      />
+                      <EmojiPicker onSelect={handleEmojiSelect} onClose={() => setShowEmojiPicker(false)} />
                     </div>
                   )}
                 </div>
 
-                {/* Mention button */}
-                <ToolbarBtn title="Erwaehnung (@)" onClick={triggerMention}>
-                  <span className="text-sm font-semibold leading-none">@</span>
-                </ToolbarBtn>
-
-                {/* Separator */}
-                <div className="w-px h-5 bg-gray-300 mx-1" />
-
-                {/* Video meeting */}
-                <button onClick={startVideoMeeting} title="Video-Meeting starten" className="p-1.5 rounded hover:bg-gray-100 text-slack-gray-text">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                {/* Mention @ */}
+                <BottomBtn title="Erwähnung (@)" onClick={triggerMention}>
+                  <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
                   </svg>
-                </button>
+                </BottomBtn>
 
-                {/* Voice message */}
-                <button onClick={() => setIsRecordingVoice(true)} title="Sprachnachricht aufnehmen" className="p-1.5 rounded hover:bg-gray-100 text-slack-gray-text">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                <SepVertical />
+
+                {/* Video */}
+                <BottomBtn
+                  title="Video-Meeting starten"
+                  onClick={() => window.dispatchEvent(new CustomEvent('start-call', { detail: { channelId, mediaType: 'video' } }))}
+                >
+                  <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
-                </button>
+                </BottomBtn>
 
-                {/* Separator */}
-                <div className="w-px h-5 bg-gray-300 mx-1" />
-
-                {/* Shortcut/Canvas */}
-                <button title="Erstellen" className="p-1.5 rounded hover:bg-gray-100 text-slack-gray-text">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                {/* Microphone */}
+                <BottomBtn
+                  title="Sprachnachricht aufnehmen"
+                  onClick={() => setIsRecordingVoice(true)}
+                >
+                  <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                   </svg>
-                </button>
+                </BottomBtn>
+
+                <SepVertical />
+
+                {/* Slash command */}
+                <BottomBtn title="Slash-Befehle">
+                  <div className="w-[18px] h-[18px] rounded-[3px] border-[1.3px] border-current flex items-center justify-center">
+                    <span className="italic font-medium text-[10px] leading-none">/</span>
+                  </div>
+                </BottomBtn>
               </div>
 
-              {/* Right side — Send button */}
+              {/* Right side: Send + dropdown */}
               <div className="flex items-center gap-0.5">
                 <button
                   onClick={sendMessage}
                   disabled={!canSend}
-                  className={`flex items-center justify-center rounded-md p-1.5 transition-colors ${
+                  className={`flex items-center justify-center rounded-md w-8 h-8 transition-colors ${
                     canSend
-                      ? 'bg-slack-green text-white hover:bg-slack-green-hover'
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      ? 'bg-[#007a5a] text-white hover:bg-[#006644]'
+                      : 'bg-transparent text-gray-400 hover:bg-gray-100'
                   }`}
                   title="Senden"
                 >
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                  <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M1.5 17.5L18.5 10 1.5 2.5 1.5 8.5 13.5 10 1.5 11.5 1.5 17.5z" />
                   </svg>
                 </button>
-                <button title="Nachricht planen" className="p-1 text-slack-gray-text hover:text-gray-600">
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <div className="w-px h-5 bg-gray-300 mx-0.5" />
+                <button title="Nachricht planen" className="flex items-center justify-center w-6 h-8 rounded hover:bg-gray-100 text-gray-500">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
               </div>
@@ -712,15 +723,15 @@ export function MessageInput({ channelId, threadParentId, channelName }: Message
 
 /* --- Sub-components --- */
 
-function Separator() {
-  return <div className="mx-0.5 h-5 w-px bg-gray-300" />;
+function SepVertical() {
+  return <div className="mx-1.5 h-5 w-px bg-gray-300" />;
 }
 
 function FmtBtn({ title, onClick, children }: { title: string; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
       onClick={onClick}
-      className="flex items-center justify-center rounded px-1.5 py-1 text-slack-gray-text hover:bg-slack-msg-hover hover:text-gray-700 transition-colors"
+      className="flex items-center justify-center w-8 h-8 rounded text-gray-700 hover:bg-gray-200 transition-colors"
       title={title}
     >
       {children}
@@ -728,9 +739,9 @@ function FmtBtn({ title, onClick, children }: { title: string; onClick: () => vo
   );
 }
 
-function ToolbarBtn({ title, onClick, children, active, disabled }: {
+function BottomBtn({ title, onClick, children, active, disabled }: {
   title: string;
-  onClick: () => void;
+  onClick?: () => void;
   children: React.ReactNode;
   active?: boolean;
   disabled?: boolean;
@@ -739,10 +750,10 @@ function ToolbarBtn({ title, onClick, children, active, disabled }: {
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`flex items-center justify-center rounded-md p-1.5 transition-colors ${
+      className={`flex items-center justify-center w-8 h-8 rounded transition-colors ${
         active
-          ? 'text-slack-blue bg-slack-mention-bg'
-          : 'text-slack-gray-text hover:text-gray-700 hover:bg-slack-msg-hover'
+          ? 'bg-gray-200 text-gray-900'
+          : 'text-gray-700 hover:bg-gray-100'
       } disabled:opacity-50`}
       title={title}
     >

@@ -65,7 +65,7 @@ export default function ThreadsPage() {
     <div className="flex-1 bg-white">
       <div className="border-b px-6 py-4">
         <h1 className="text-lg font-bold">Threads</h1>
-        <p className="text-sm text-gray-500 mt-1">Behalte den Ueberblick ueber Unterhaltungen, die dir wichtig sind.</p>
+        <p className="text-sm text-gray-500 mt-1">Behalte den Überblick ueber Unterhaltungen, die dir wichtig sind.</p>
       </div>
 
       {threads.length === 0 ? (
@@ -73,7 +73,7 @@ export default function ThreadsPage() {
           <span className="text-5xl mb-4 block">🧵</span>
           <h2 className="text-lg font-semibold text-gray-900 mb-2">Threads an einem Ort</h2>
           <p className="text-sm text-gray-500 max-w-md mx-auto">
-            Threads werden hier angezeigt, sobald du in einem Thread antwortest oder erwaehnt wirst.
+            Threads werden hier angezeigt, sobald du in einem Thread antwortest oder erwähnt wirst.
           </p>
         </div>
       ) : (

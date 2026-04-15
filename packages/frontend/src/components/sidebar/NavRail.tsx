@@ -3,7 +3,9 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useNotificationsStore } from '@/stores/notifications.store';
 import { useDmsStore } from '@/stores/dms.store';
+import { useChannelsStore } from '@/stores/channels.store';
 import { useAuthStore } from '@/stores/auth.store';
+import { useUnreadStore } from '@/stores/unread.store';
 import { apiFetch } from '@/lib/api';
 import { CreateMenu } from './CreateMenu';
 import { NavRailPopup } from './NavRailPopup';
@@ -90,8 +92,29 @@ const NAV_ROUTES: Partial<Record<NavView, string>> = {
   threads: '/threads',
 };
 
-// IDs of items that get hover popups
-const POPUP_IDS = new Set<NavView>(['activity', 'dms', 'later']);
+// IDs that support hover popups (only if NOT active)
+const POPUP_IDS = new Set<NavView>(['activity', 'dms', 'later', 'threads', 'channels']);
+
+/** Reusable unread toggle switch */
+function UnreadToggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label className="flex items-center gap-2 cursor-pointer select-none">
+      <span className="text-xs text-gray-600">Ungelesenes</span>
+      <div
+        onClick={() => onChange(!value)}
+        className={`relative w-9 h-5 rounded-full transition-colors ${
+          value ? 'bg-slack-blue' : 'bg-gray-300'
+        }`}
+      >
+        <div
+          className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+            value ? 'translate-x-4' : 'translate-x-0.5'
+          }`}
+        />
+      </div>
+    </label>
+  );
+}
 
 export function NavRail({ activeView, onViewChange, onCompose, onCreateChannel, onCreateDm, sidebarCollapsed, onToggleCollapse }: NavRailProps) {
   const unreadCount = useNotificationsStore((s) => s.unreadCount);
@@ -106,8 +129,18 @@ export function NavRail({ activeView, onViewChange, onCompose, onCreateChannel, 
 
   // Popup data
   const { conversations } = useDmsStore();
+  const { channels, starredChannelIds } = useChannelsStore();
+  const unreadByChannel = useUnreadStore((s) => s.unreadByChannel);
   const currentUserId = useAuthStore((s) => s.user?.id);
   const [savedItems, setSavedItems] = useState<any[]>([]);
+  const [threadItems, setThreadItems] = useState<any[]>([]);
+
+  // Unread filter toggles per popup
+  const [dmUnreadOnly, setDmUnreadOnly] = useState(false);
+  const [activityUnreadOnly, setActivityUnreadOnly] = useState(false);
+  const [channelsUnreadOnly, setChannelsUnreadOnly] = useState(false);
+  const [threadsUnreadOnly, setThreadsUnreadOnly] = useState(false);
+  const [laterUnreadOnly, setLaterUnreadOnly] = useState(false);
 
   // Fetch notifications when activity popup opens
   useEffect(() => {
@@ -123,8 +156,16 @@ export function NavRail({ activeView, onViewChange, onCompose, onCreateChannel, 
     }
   }, [hoverItem]);
 
+  // Fetch threads when threads popup opens
+  useEffect(() => {
+    if (hoverItem === 'threads') {
+      apiFetch<any[]>('/messages/threads').then(setThreadItems).catch(() => setThreadItems([]));
+    }
+  }, [hoverItem]);
+
   function handleNavHover(id: NavView, e: React.MouseEvent) {
-    if (!POPUP_IDS.has(id)) return;
+    // No popup on currently active item
+    if (!POPUP_IDS.has(id) || activeView === id) return;
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     clearTimeout(hoverTimer.current);
     hoverTimer.current = setTimeout(() => {
@@ -135,7 +176,6 @@ export function NavRail({ activeView, onViewChange, onCompose, onCreateChannel, 
 
   function handleNavLeave() {
     clearTimeout(hoverTimer.current);
-    // Close popup after a short delay (allows mouse to move to popup)
     hoverTimer.current = setTimeout(() => setHoverItem(null), 400);
   }
 
@@ -150,11 +190,32 @@ export function NavRail({ activeView, onViewChange, onCompose, onCreateChannel, 
     return other?.user?.displayName || other?.user?.email || 'Unbekannt';
   }
 
+  // Filtered lists based on toggles
+  const filteredConversations = dmUnreadOnly
+    ? conversations.filter((c: any) => (c.unreadCount || 0) > 0 || (unreadByChannel[c.id] || 0) > 0)
+    : conversations;
+
+  const filteredNotifications = activityUnreadOnly
+    ? notifications.filter((n: any) => !n.isRead)
+    : notifications;
+
+  const filteredChannels = (channelsUnreadOnly
+    ? channels.filter((c) => (unreadByChannel[c.id] || 0) > 0)
+    : channels);
+
+  const filteredThreads = threadsUnreadOnly
+    ? threadItems.filter((t: any) => (t.unreadCount || 0) > 0)
+    : threadItems;
+
+  const filteredSaved = laterUnreadOnly
+    ? savedItems.filter((s: any) => !s.isRead)
+    : savedItems;
+
   return (
     <div className="flex h-full w-16 flex-col items-center bg-slack-aubergine-dark py-2 border-r border-black/20">
       {/* Workspace icon */}
       <div className="mb-1 cursor-pointer select-none">
-        <img src="/workspace-logo.jpeg" alt="Waldkraft" className="h-9 w-9 rounded-lg object-cover" />
+        <img src="/workspace-logo.jpeg" alt="Softgames" className="h-9 w-9 rounded-lg object-cover" />
       </div>
 
       {/* Collapse / Expand sidebar button */}
@@ -164,12 +225,10 @@ export function NavRail({ activeView, onViewChange, onCompose, onCreateChannel, 
         className="mb-2 p-1.5 rounded hover:bg-white/10 text-slack-text transition-colors"
       >
         {sidebarCollapsed ? (
-          // Expand icon (panel with arrow right)
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         ) : (
-          // Collapse icon (panel with sidebar visible)
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth={2} />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v18" />
@@ -232,25 +291,27 @@ export function NavRail({ activeView, onViewChange, onCompose, onCreateChannel, 
       <NavRailPopup
         isVisible={hoverItem === 'activity'}
         onClose={closePopup}
-        title="Aktivitaet"
+        title="Aktivität"
         anchorTop={hoverPos}
-        topRight={<span className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">Ungelesenes</span>}
+        topRight={<UnreadToggle value={activityUnreadOnly} onChange={setActivityUnreadOnly} />}
       >
-        {notifications.length === 0 ? (
-          <p className="p-4 text-sm text-gray-500 text-center">Keine Aktivitaet</p>
+        {filteredNotifications.length === 0 ? (
+          <p className="p-4 text-sm text-gray-500 text-center">
+            {activityUnreadOnly ? 'Keine ungelesenen Aktivitäten' : 'Keine Aktivität'}
+          </p>
         ) : (
-          notifications.slice(0, 5).map((n) => (
+          filteredNotifications.slice(0, 5).map((n: any) => (
             <div key={n.id} className="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer">
               <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                <span>@ Erwaehnung in #{(n as any).channel?.name || 'channel'}</span>
+                <span>@ Erwähnung in #{n.channel?.name || 'channel'}</span>
                 <span>{new Date(n.createdAt).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })}</span>
               </div>
               <div className="flex items-start gap-2">
                 <div className="w-8 h-8 rounded bg-gray-300 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                  {(n as any).actor?.displayName?.[0]?.toUpperCase() || '?'}
+                  {n.actor?.displayName?.[0]?.toUpperCase() || '?'}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-gray-900">{(n as any).actor?.displayName || 'System'}</p>
+                  <p className="text-sm font-bold text-gray-900">{n.actor?.displayName || 'System'}</p>
                   <p className="text-sm text-gray-700 line-clamp-2">{n.summary}</p>
                 </div>
               </div>
@@ -265,12 +326,14 @@ export function NavRail({ activeView, onViewChange, onCompose, onCreateChannel, 
         onClose={closePopup}
         title="Direktnachrichten"
         anchorTop={hoverPos}
-        topRight={<span className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">Ungelesenes</span>}
+        topRight={<UnreadToggle value={dmUnreadOnly} onChange={setDmUnreadOnly} />}
       >
-        {conversations.length === 0 ? (
-          <p className="p-4 text-sm text-gray-500 text-center">Keine Direktnachrichten</p>
+        {filteredConversations.length === 0 ? (
+          <p className="p-4 text-sm text-gray-500 text-center">
+            {dmUnreadOnly ? 'Keine ungelesenen Direktnachrichten' : 'Keine Direktnachrichten'}
+          </p>
         ) : (
-          conversations.slice(0, 5).map((conv: any) => (
+          filteredConversations.slice(0, 8).map((conv: any) => (
             <div
               key={conv.id}
               onClick={() => { closePopup(); router.push(`/dm/${conv.id}`); }}
@@ -293,22 +356,107 @@ export function NavRail({ activeView, onViewChange, onCompose, onCreateChannel, 
         )}
       </NavRailPopup>
 
+      {/* Channels Popup */}
+      <NavRailPopup
+        isVisible={hoverItem === 'channels'}
+        onClose={closePopup}
+        title="Kanäle"
+        anchorTop={hoverPos}
+        topRight={<UnreadToggle value={channelsUnreadOnly} onChange={setChannelsUnreadOnly} />}
+      >
+        {filteredChannels.length === 0 ? (
+          <p className="p-4 text-sm text-gray-500 text-center">
+            {channelsUnreadOnly ? 'Keine ungelesenen Kanäle' : 'Keine Kanäle'}
+          </p>
+        ) : (
+          filteredChannels.slice(0, 10).map((ch: any) => {
+            const unread = unreadByChannel[ch.id] || 0;
+            const isStarred = starredChannelIds.includes(ch.id);
+            return (
+              <div
+                key={ch.id}
+                onClick={() => { closePopup(); router.push(`/channel/${ch.id}`); }}
+                className="px-4 py-2.5 border-b border-gray-100 hover:bg-gray-50 cursor-pointer flex items-center gap-3"
+              >
+                <span className="text-gray-400 text-base flex-shrink-0 w-4 text-center">
+                  {ch.type === 'public' ? '#' : '🔒'}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className={`text-sm truncate ${unread > 0 ? 'font-bold text-gray-900' : 'text-gray-700'}`}>
+                    {ch.name}
+                    {isStarred && <span className="ml-1.5 text-yellow-500">★</span>}
+                  </p>
+                  {ch.topic && (
+                    <p className="text-xs text-gray-500 truncate">{ch.topic}</p>
+                  )}
+                </div>
+                {unread > 0 && (
+                  <span className="h-5 min-w-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-1 flex-shrink-0">
+                    {unread}
+                  </span>
+                )}
+              </div>
+            );
+          })
+        )}
+      </NavRailPopup>
+
+      {/* Threads Popup */}
+      <NavRailPopup
+        isVisible={hoverItem === 'threads'}
+        onClose={closePopup}
+        title="Threads"
+        anchorTop={hoverPos}
+        topRight={<UnreadToggle value={threadsUnreadOnly} onChange={setThreadsUnreadOnly} />}
+      >
+        {filteredThreads.length === 0 ? (
+          <p className="p-4 text-sm text-gray-500 text-center">
+            {threadsUnreadOnly ? 'Keine ungelesenen Threads' : 'Keine abonnierten Threads'}
+          </p>
+        ) : (
+          filteredThreads.slice(0, 8).map((t: any) => (
+            <div
+              key={t.id}
+              onClick={() => { closePopup(); router.push(`/channel/${t.channelId}`); }}
+              className="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+            >
+              <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                <span className="font-semibold">#{t.channel?.name || 'Kanal'}</span>
+                <span>•</span>
+                <span>{t.replyCount || 0} Antworten</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <div className="w-7 h-7 rounded bg-blue-200 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                  {t.user?.displayName?.[0]?.toUpperCase() || '?'}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm text-gray-700 line-clamp-2">{t.content || 'Keine Vorschau'}</p>
+                </div>
+                {(t.unreadCount || 0) > 0 && (
+                  <span className="h-5 min-w-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-1 flex-shrink-0">
+                    {t.unreadCount}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </NavRailPopup>
+
       {/* Later / Saved Popup */}
       <NavRailPopup
         isVisible={hoverItem === 'later'}
         onClose={closePopup}
-        title="Spaeter"
+        title="Später"
         anchorTop={hoverPos}
-        topRight={
-          savedItems.length > 0
-            ? <span className="text-xs text-gray-500">{savedItems.length} gespeichert</span>
-            : undefined
-        }
+        topRight={<UnreadToggle value={laterUnreadOnly} onChange={setLaterUnreadOnly} />}
       >
-        {savedItems.length === 0 ? (
-          <p className="p-4 text-sm text-gray-500 text-center">Keine gespeicherten Nachrichten</p>
+        {filteredSaved.length === 0 ? (
+          <p className="p-4 text-sm text-gray-500 text-center">
+            {laterUnreadOnly ? 'Keine ungelesenen gespeicherten Nachrichten' : 'Keine gespeicherten Nachrichten'}
+          </p>
         ) : (
-          savedItems.slice(0, 5).map((item: any) => (
+          filteredSaved.slice(0, 5).map((item: any) => (
             <div key={item.id} className="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer">
               <div className="flex items-start gap-2">
                 <div className="w-8 h-8 rounded bg-yellow-200 flex items-center justify-center text-xs font-bold flex-shrink-0">

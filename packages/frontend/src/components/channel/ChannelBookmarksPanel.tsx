@@ -49,7 +49,7 @@ export function ChannelBookmarksPanel({ channelId, onClose }: ChannelBookmarksPa
       setShowAdd(false);
       addToast('Lesezeichen hinzugefuegt', 'success');
     } catch {
-      addToast('Fehler beim Hinzufuegen', 'error');
+      addToast('Fehler beim Hinzufügen', 'error');
     } finally {
       setSaving(false);
     }
@@ -81,7 +81,7 @@ export function ChannelBookmarksPanel({ channelId, onClose }: ChannelBookmarksPa
           <div className="p-6 text-center">
             <p className="text-2xl mb-2">🔖</p>
             <p className="text-sm font-medium text-gray-700 mb-1">Keine Lesezeichen</p>
-            <p className="text-xs text-gray-500 mb-4">Fuege Links hinzu, die fuer diesen Channel wichtig sind.</p>
+            <p className="text-xs text-gray-500 mb-4">Fuege Links hinzu, die für diesen Channel wichtig sind.</p>
           </div>
         ) : (
           <ul className="divide-y divide-gray-100">
@@ -148,7 +148,7 @@ export function ChannelBookmarksPanel({ channelId, onClose }: ChannelBookmarksPa
                 disabled={saving || !newTitle.trim() || !newUrl.trim()}
                 className="flex-1 py-1.5 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded disabled:opacity-50"
               >
-                {saving ? 'Hinzufuegen...' : 'Hinzufuegen'}
+                {saving ? 'Hinzufügen...' : 'Hinzufügen'}
               </button>
               <button
                 onClick={() => { setShowAdd(false); setNewTitle(''); setNewUrl(''); setNewEmoji(''); }}
@@ -169,7 +169,7 @@ export function ChannelBookmarksPanel({ channelId, onClose }: ChannelBookmarksPa
             className="w-full flex items-center justify-center gap-2 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-200"
           >
             <span>+</span>
-            <span>Lesezeichen hinzufuegen</span>
+            <span>Lesezeichen hinzufügen</span>
           </button>
         </div>
       )}
