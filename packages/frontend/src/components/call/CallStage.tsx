@@ -1,16 +1,7 @@
 'use client';
 
-import { useCallback, useState } from 'react';
-import {
-  useLocalParticipant,
-  useRemoteParticipants,
-  useTracks,
-  useRoomContext,
-  GridLayout,
-  ParticipantTile,
-  VideoTrack,
-} from '@livekit/components-react';
-import { Track } from 'livekit-client';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Room, RoomOptions, Participant, Track } from 'livekit-client';
 import {
   Mic,
   MicOff,
@@ -22,122 +13,153 @@ import {
 } from 'lucide-react';
 
 interface Props {
+  roomRef: React.MutableRefObject<Room | null>;
+  token: string;
+  url: string;
   channelId: string;
+  mediaType: string;
+  roomOptions: RoomOptions;
+  onError: (error: string) => void;
   onEnd: () => void;
 }
 
 /**
- * Main call stage — video grid + toolbar with Google Meet-style controls:
- * mic/cam/screen share, and hangup.
+ * Video call stage with grid layout and Google Meet-style controls.
  */
-export function CallStage({ onEnd }: Props) {
-  const room = useRoomContext();
-  const {
-    localParticipant,
-    isMicrophoneEnabled,
-    isCameraEnabled,
-    isScreenShareEnabled,
-  } = useLocalParticipant();
-  const remoteParticipants = useRemoteParticipants();
-
-  // Video tracks (camera + screen share)
-  const tracks = useTracks(
-    [
-      { source: Track.Source.Camera, withPlaceholder: true },
-      { source: Track.Source.ScreenShare, withPlaceholder: false },
-    ],
-    { onlySubscribed: false },
-  );
-
-  // Separate screen share tracks from camera tracks
-  const screenShareTracks = tracks.filter(
-    (t) => t.source === Track.Source.ScreenShare && t.publication?.track,
-  );
-  const cameraTracks = tracks.filter(
-    (t) => t.source !== Track.Source.ScreenShare,
-  );
-  const hasScreenShare = screenShareTracks.length > 0;
-
-  // Toggle guard to prevent double-clicks during async transition
+export function CallStage({
+  roomRef,
+  token,
+  url,
+  channelId,
+  mediaType,
+  roomOptions,
+  onError,
+  onEnd,
+}: Props) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
+  const [micEnabled, setMicEnabled] = useState(true);
+  const [cameraEnabled, setCameraEnabled] = useState(mediaType === 'video');
+  const [screenShareEnabled, setScreenShareEnabled] = useState(false);
   const [toggling, setToggling] = useState<null | 'mic' | 'cam' | 'screen'>(null);
+  const [connected, setConnected] = useState(false);
 
-  // Mic toggle
+  // Initialize room connection
+  useEffect(() => {
+    const initRoom = async () => {
+      try {
+        const { Room } = await import('livekit-client');
+        const room = new Room(roomOptions);
+        roomRef.current = room;
+
+        // Setup event listeners
+        room.on('participantConnected', (participant) => {
+          console.log('Participant connected:', participant.identity);
+          participant.on('trackSubscribed', (track) => {
+            console.log('Track subscribed:', track.kind);
+            const element = document.createElement('video');
+            element.autoplay = true;
+            element.muted = false;
+            element.playsInline = true;
+            element.className = 'w-full h-full object-cover';
+            const el = track.attach(element);
+            videoRefs.current.set(`${participant.identity}-${track.sid}`, el);
+            containerRef.current?.appendChild(el);
+          });
+          participant.on('trackUnsubscribed', (track) => {
+            const el = videoRefs.current.get(`${participant.identity}-${track.sid}`);
+            if (el) {
+              track.detach(el);
+              el.remove();
+              videoRefs.current.delete(`${participant.identity}-${track.sid}`);
+            }
+          });
+        });
+
+        room.on('disconnected', onEnd);
+
+        // Connect to room
+        await room.connect(url, token);
+        setConnected(true);
+
+        // Publish local tracks
+        if (cameraEnabled) {
+          try {
+            await room.localParticipant.setCameraEnabled(true);
+          } catch (err) {
+            console.error('Failed to enable camera:', err);
+          }
+        }
+        if (micEnabled) {
+          try {
+            await room.localParticipant.setMicrophoneEnabled(true);
+          } catch (err) {
+            console.error('Failed to enable microphone:', err);
+          }
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        console.error('Failed to initialize room:', err);
+        onError(`Connection error: ${message}`);
+      }
+    };
+
+    initRoom();
+
+    return () => {
+      if (roomRef.current) {
+        roomRef.current.disconnect();
+      }
+    };
+  }, [token, url, cameraEnabled, micEnabled, roomOptions, onError, onEnd, roomRef]);
+
   const handleToggleMic = useCallback(async () => {
-    if (!localParticipant || toggling) return;
+    if (toggling || !roomRef.current) return;
     setToggling('mic');
     try {
-      await localParticipant.setMicrophoneEnabled(!isMicrophoneEnabled);
+      await roomRef.current.localParticipant.setMicrophoneEnabled(!micEnabled);
+      setMicEnabled(!micEnabled);
     } finally {
       setToggling(null);
     }
-  }, [localParticipant, isMicrophoneEnabled, toggling]);
+  }, [micEnabled, toggling]);
 
-  // Camera toggle
   const handleToggleCamera = useCallback(async () => {
-    if (!localParticipant || toggling) return;
+    if (toggling || !roomRef.current) return;
     setToggling('cam');
     try {
-      await localParticipant.setCameraEnabled(!isCameraEnabled);
+      await roomRef.current.localParticipant.setCameraEnabled(!cameraEnabled);
+      setCameraEnabled(!cameraEnabled);
     } finally {
       setToggling(null);
     }
-  }, [localParticipant, isCameraEnabled, toggling]);
+  }, [cameraEnabled, toggling]);
 
-  // Screen share toggle
   const handleToggleScreenShare = useCallback(async () => {
-    if (!localParticipant || toggling) return;
+    if (toggling || !roomRef.current) return;
     setToggling('screen');
     try {
-      await localParticipant.setScreenShareEnabled(!isScreenShareEnabled);
+      await roomRef.current.localParticipant.setScreenShareEnabled(!screenShareEnabled);
+      setScreenShareEnabled(!screenShareEnabled);
     } finally {
       setToggling(null);
     }
-  }, [localParticipant, isScreenShareEnabled, toggling]);
+  }, [screenShareEnabled, toggling]);
 
   return (
     <div className="flex flex-col h-full w-full">
-      {/* Video Grid */}
-      <div className="flex-1 overflow-hidden bg-gray-900">
-        {hasScreenShare ? (
-          // Screen share layout: large screen share + small video grid
-          <div className="h-full flex gap-4 p-4">
-            <div className="flex-1">
-              {screenShareTracks.map((track) => (
-                <VideoTrack key={track.trackSid} trackRef={track} />
-              ))}
-            </div>
-            <div className="w-48 flex flex-col gap-2">
-              {cameraTracks.map((track) => (
-                <div key={track.trackSid} className="flex-1 min-h-0">
-                  <ParticipantTile trackRef={track} />
-                </div>
-              ))}
-              {remoteParticipants.map((participant) => (
-                <div key={participant.identity} className="flex-1 min-h-0">
-                  <ParticipantTile participant={participant} />
-                </div>
-              ))}
+      {/* Video Container */}
+      <div
+        ref={containerRef}
+        className="flex-1 overflow-hidden bg-gray-900 grid grid-cols-2 gap-2 p-4 auto-rows-fr"
+      >
+        {!connected && (
+          <div className="col-span-2 flex items-center justify-center">
+            <div className="text-white text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+              <p>Verbindung wird hergestellt...</p>
             </div>
           </div>
-        ) : (
-          // Normal grid layout
-          <GridLayout
-            tracks={cameraTracks.concat(
-              remoteParticipants.map((p) => ({
-                participant: p,
-                isScreenShare: false,
-                isMirrored: false,
-              })),
-            )}
-            style={{ height: '100%', width: '100%' }}
-          >
-            {cameraTracks.map((track) => (
-              <ParticipantTile key={track.trackSid} trackRef={track} />
-            ))}
-            {remoteParticipants.map((participant) => (
-              <ParticipantTile key={participant.identity} participant={participant} />
-            ))}
-          </GridLayout>
         )}
       </div>
 
@@ -146,43 +168,51 @@ export function CallStage({ onEnd }: Props) {
         {/* Microphone */}
         <button
           onClick={handleToggleMic}
-          disabled={toggling === 'mic'}
-          title={isMicrophoneEnabled ? 'Mikrofon ausschalten' : 'Mikrofon einschalten'}
+          disabled={toggling === 'mic' || !connected}
+          title={micEnabled ? 'Mikrofon ausschalten' : 'Mikrofon einschalten'}
           className={`p-3 rounded-full transition-all ${
-            isMicrophoneEnabled
+            micEnabled
               ? 'bg-gray-700 text-white hover:bg-gray-600'
               : 'bg-red-600 text-white hover:bg-red-500'
           } disabled:opacity-50`}
         >
-          {isMicrophoneEnabled ? <Mic size={20} /> : <MicOff size={20} />}
+          {micEnabled ? <Mic size={20} /> : <MicOff size={20} />}
         </button>
 
         {/* Camera */}
         <button
           onClick={handleToggleCamera}
-          disabled={toggling === 'cam'}
-          title={isCameraEnabled ? 'Kamera ausschalten' : 'Kamera einschalten'}
+          disabled={toggling === 'cam' || !connected}
+          title={cameraEnabled ? 'Kamera ausschalten' : 'Kamera einschalten'}
           className={`p-3 rounded-full transition-all ${
-            isCameraEnabled
+            cameraEnabled
               ? 'bg-gray-700 text-white hover:bg-gray-600'
               : 'bg-red-600 text-white hover:bg-red-500'
           } disabled:opacity-50`}
         >
-          {isCameraEnabled ? <Video size={20} /> : <VideoOff size={20} />}
+          {cameraEnabled ? <Video size={20} /> : <VideoOff size={20} />}
         </button>
 
         {/* Screen Share */}
         <button
           onClick={handleToggleScreenShare}
-          disabled={toggling === 'screen'}
-          title={isScreenShareEnabled ? 'Bildschirm nicht mehr freigeben' : 'Bildschirm freigeben'}
+          disabled={toggling === 'screen' || !connected}
+          title={
+            screenShareEnabled
+              ? 'Bildschirm nicht mehr freigeben'
+              : 'Bildschirm freigeben'
+          }
           className={`p-3 rounded-full transition-all ${
-            isScreenShareEnabled
+            screenShareEnabled
               ? 'bg-blue-600 text-white hover:bg-blue-500'
               : 'bg-gray-700 text-white hover:bg-gray-600'
           } disabled:opacity-50`}
         >
-          {isScreenShareEnabled ? <ScreenShare size={20} /> : <ScreenShareOff size={20} />}
+          {screenShareEnabled ? (
+            <ScreenShare size={20} />
+          ) : (
+            <ScreenShareOff size={20} />
+          )}
         </button>
 
         {/* Hangup */}
