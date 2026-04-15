@@ -14,7 +14,7 @@ export function CallWindow() {
   const active = useCallStore((s) => s.active);
   const endActive = useCallStore((s) => s.endActive);
   const roomRef = useRef<Room | null>(null);
-  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [participants, setParticipants] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   // Request notification permission on mount
